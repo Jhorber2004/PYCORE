@@ -13,22 +13,31 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-    void Update()
+void Update()
+{
+    // Si el dialogo está abierto no se mueve y libera el teclado
+    if (DialogueUI.instancia != null && DialogueUI.instancia.panelDialogo.activeSelf)
     {
-        movimiento.x = Input.GetAxisRaw("Horizontal");
-        movimiento.y = Input.GetAxisRaw("Vertical");
-
-        if (movimiento.x > 0)
-            animator.Play("Alex_Walk_Right");
-        else if (movimiento.x < 0)
-            animator.Play("Alex_Walk_Left");
-        else if (movimiento.y > 0)
-            animator.Play("Alex_Walk_Up");
-        else if (movimiento.y < 0)
-            animator.Play("Walk_Down");
-        else
-            animator.Play("Alex_Idle");
+        movimiento = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
+        animator.Play("Alex_Idle");
+        return;
     }
+
+    movimiento.x = Input.GetAxisRaw("Horizontal");
+    movimiento.y = Input.GetAxisRaw("Vertical");
+
+    if (movimiento.x > 0)
+        animator.Play("Alex_Walk_Right");
+    else if (movimiento.x < 0)
+        animator.Play("Alex_Walk_Left");
+    else if (movimiento.y > 0)
+        animator.Play("Alex_Walk_Up");
+    else if (movimiento.y < 0)
+        animator.Play("Walk_Down");
+    else
+        animator.Play("Alex_Idle");
+}
 
     void FixedUpdate()
     {
