@@ -22,6 +22,7 @@ public class DialogueUI : MonoBehaviour
 
     private NPCController npcActual;
     private string systemPromptActual;
+    private string npcIdActual;
 
     void Awake()
     {
@@ -29,12 +30,13 @@ public class DialogueUI : MonoBehaviour
         panelDialogo.SetActive(false);
     }
 
-    public void MostrarDialogo(string nombre, NPCController npc, string systemPrompt = "")
+    public void MostrarDialogo(string nombre, NPCController npc, string systemPrompt = "", string npcId = "")
     {
         npcActual = npc;
         systemPromptActual = systemPrompt;
+        npcIdActual = npcId;
         textoNombre.text = nombre;
-        textoDialogo.text = "Hola, soy " + nombre + ". ¿En qué te puedo ayudar?";
+        textoDialogo.text = "¡Hola! Soy " + nombre + ". ¿En qué te puedo ayudar hoy?";
         panelDialogo.SetActive(true);
         MostrarOpciones();
     }
@@ -57,9 +59,9 @@ public class DialogueUI : MonoBehaviour
         opcion2.gameObject.SetActive(false);
         opcion3.gameObject.SetActive(false);
 
-        textoDialogo.text = "Escribiendo...";
+        textoDialogo.text = "...";
 
-        APIManager.instancia.EnviarMensaje(systemPromptActual, mensaje, (respuesta) =>
+        APIManager.instancia.EnviarMensaje(npcIdActual, systemPromptActual, mensaje, (respuesta) =>
         {
             textoDialogo.text = respuesta;
             MostrarOpciones();
