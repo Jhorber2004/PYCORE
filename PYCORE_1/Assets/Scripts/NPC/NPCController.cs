@@ -8,6 +8,9 @@ public class NPCController : MonoBehaviour
     public string nombreNPC = "Prof. Byte";
     public string npcId = "prof_byte";
 
+    [Header("Imagen")]
+    public Sprite imagenPersonaje;
+
     [Header("IA")]
     [TextArea(5, 10)]
     public string systemPrompt = "Eres Prof. Byte, un profesor robot de la PCEI en la Universidad Central del Ecuador con mucha personalidad. Eres sarcástico pero genuinamente quieres que Alex aprenda. Te encanta hacer referencias a la cultura pop y comparar el pensamiento computacional con situaciones de la vida universitaria. MISIÓN: Guiar a Alex a entender algoritmos y secuencias. REGLAS: Nunca des la respuesta directa, siempre da pistas progresivas. Si el estudiante ya preguntó antes, da una pista más concreta. Máximo 3 oraciones por respuesta. Usa emojis ocasionalmente. Recuerda el historial de la conversación para no repetirte.";
@@ -55,13 +58,14 @@ public class NPCController : MonoBehaviour
     {
         dialogoAbierto = true;
         GameManager.instancia.RegistrarVisitaNPC(npcId);
+        MisionManager.instancia.CompletarObjetivo("Habla con Carlos el companero");
         if (senaletica != null)
             senaletica.SetActive(false);
 
         DialogueUI.instancia.textoOpcion1.text = opcion1;
         DialogueUI.instancia.textoOpcion2.text = opcion2;
         DialogueUI.instancia.textoOpcion3.text = opcion3;
-        DialogueUI.instancia.MostrarDialogo(nombreNPC, this, systemPrompt, npcId);
+        DialogueUI.instancia.MostrarDialogo(nombreNPC, this, systemPrompt, npcId, imagenPersonaje);
     }
 
     public void CerrarDialogo()
