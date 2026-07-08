@@ -11,6 +11,7 @@ public class DialogueUI : MonoBehaviour
     public TextMeshProUGUI textoNombre;
     public TextMeshProUGUI textoDialogo;
     public Button botonCerrar;
+    public Image imagenNPC;
 
     [Header("Opciones")]
     public Button opcion1;
@@ -30,14 +31,28 @@ public class DialogueUI : MonoBehaviour
         panelDialogo.SetActive(false);
     }
 
-    public void MostrarDialogo(string nombre, NPCController npc, string systemPrompt = "", string npcId = "")
+    public void MostrarDialogo(string nombre, NPCController npc, string systemPrompt = "", string npcId = "", Sprite imagenPersonaje = null)
     {
         npcActual = npc;
         systemPromptActual = systemPrompt;
         npcIdActual = npcId;
         textoNombre.text = nombre;
-        textoDialogo.text = "¡Hola! Soy " + nombre + ". ¿En qué te puedo ayudar hoy?";
+        textoDialogo.text = "Hola, soy " + nombre + ". En que te puedo ayudar?";
         panelDialogo.SetActive(true);
+
+        if (imagenNPC != null)
+        {
+            if (imagenPersonaje != null)
+            {
+                imagenNPC.sprite = imagenPersonaje;
+                imagenNPC.gameObject.SetActive(true);
+            }
+            else
+            {
+                imagenNPC.gameObject.SetActive(false);
+            }
+        }
+
         MostrarOpciones();
     }
 
