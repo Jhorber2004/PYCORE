@@ -12,6 +12,7 @@ public class DialogueUI : MonoBehaviour
     public TextMeshProUGUI textoDialogo;
     public Button botonCerrar;
     public Image imagenNPC;
+    public GameObject fondoOscuro;
 
     [Header("Opciones")]
     public Button opcion1;
@@ -29,6 +30,8 @@ public class DialogueUI : MonoBehaviour
     {
         instancia = this;
         panelDialogo.SetActive(false);
+        if (fondoOscuro != null)
+            fondoOscuro.SetActive(false);
     }
 
     public void MostrarDialogo(string nombre, NPCController npc, string systemPrompt = "", string npcId = "", Sprite imagenPersonaje = null)
@@ -39,6 +42,9 @@ public class DialogueUI : MonoBehaviour
         textoNombre.text = nombre;
         textoDialogo.text = "Hola, soy " + nombre + ". En que te puedo ayudar?";
         panelDialogo.SetActive(true);
+
+        if (fondoOscuro != null)
+            fondoOscuro.SetActive(true);
 
         if (imagenNPC != null)
         {
@@ -86,6 +92,10 @@ public class DialogueUI : MonoBehaviour
     public void CerrarDialogo()
     {
         panelDialogo.SetActive(false);
+
+        if (fondoOscuro != null)
+            fondoOscuro.SetActive(false);
+
         if (npcActual != null)
             npcActual.CerrarDialogo();
     }

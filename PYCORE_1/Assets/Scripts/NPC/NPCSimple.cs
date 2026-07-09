@@ -19,6 +19,10 @@ public class NPCSimple : MonoBehaviour
     [Header("Mision")]
     public string siguienteObjetivo = "";
 
+    [Header("Imagen y Fondo")]
+    public Sprite imagenPersonaje;
+    public Sprite fondoDialogo;
+
     [Header("Senaletica")]
     public GameObject senaletica;
 
@@ -69,7 +73,7 @@ public class NPCSimple : MonoBehaviour
         string texto = dialogos[dialogoActual % dialogos.Length];
         dialogoActual++;
 
-        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, texto, this);
+        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, texto, this, imagenPersonaje, fondoDialogo);
     }
 
     public void CerrarDialogo()
