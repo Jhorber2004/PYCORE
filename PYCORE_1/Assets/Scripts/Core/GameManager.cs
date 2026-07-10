@@ -124,6 +124,28 @@ public class GameManager : MonoBehaviour
                "\nCapítulo 2: " + puntajeCapitulo2 + "/100" +
                "\nCapítulo 3: " + puntajeCapitulo3 + "/100";
     }
+    public int ObtenerOrdenNPC(string npcId)
+{
+    switch (npcId)
+    {
+        case "prof_byte": return 1;
+        case "npc_carlos": return 2;
+        case "npc_rosa": return 3;
+        case "npc_miguel": return 4;
+        default: return 0;
+    }
+}
+
+    public bool PuedeHablarCon(string npcId)
+    {
+        int orden = ObtenerOrdenNPC(npcId);
+        if (orden <= 1) return true;
+
+        string[] ordenNPCs = { "", "prof_byte", "npc_carlos", "npc_rosa", "npc_miguel" };
+        string npcAnterior = ordenNPCs[orden - 1];
+
+        return npcsVisitados.Contains(npcAnterior);
+    }
 }
 
 [System.Serializable]

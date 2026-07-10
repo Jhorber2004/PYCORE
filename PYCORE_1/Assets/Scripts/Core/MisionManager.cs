@@ -18,13 +18,13 @@ public class MisionManager : MonoBehaviour
         instancia = this;
     }
 
-    void Start()
-    {
-        ActualizarMision(
-            "Capitulo 1 - Primer dia en la UCE",
-            "Habla con Prof. Byte para aprender sobre algoritmos"
-        );
-    }
+void Start()
+{
+    ActualizarMision(
+        "Capitulo 1 - El examen y la PC danada",
+        "Habla con Prof. Byte para comenzar a diagnosticar tu PC"
+    );
+}
 
     public void ActualizarMision(string mision, string objetivo)
     {

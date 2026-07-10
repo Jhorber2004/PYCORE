@@ -18,10 +18,15 @@ public class NPCSimple : MonoBehaviour
 
     [Header("Mision")]
     public string siguienteObjetivo = "";
+    public string mensajeBloqueado = "Todavia no puedo ayudarte. Habla primero con las otras personas.";
 
     [Header("Imagen y Fondo")]
     public Sprite imagenPersonaje;
     public Sprite fondoDialogo;
+
+    [Header("Minijuego")]
+    public bool activaMinijuego = false;
+    public string archivoMinijuego = "";
 
     [Header("Senaletica")]
     public GameObject senaletica;
@@ -49,7 +54,12 @@ public class NPCSimple : MonoBehaviour
                 senaletica.SetActive(true);
 
             if (Input.GetKeyDown(KeyCode.E))
-                AbrirDialogo();
+            {
+                if (GameManager.instancia.PuedeHablarCon(npcId))
+                    AbrirDialogo();
+                else
+                    MostrarBloqueado();
+            }
         }
         else
         {
@@ -58,23 +68,45 @@ public class NPCSimple : MonoBehaviour
         }
     }
 
-    void AbrirDialogo()
+    void MostrarBloqueado()
     {
         dialogoAbierto = true;
         if (senaletica != null)
             senaletica.SetActive(false);
 
-        GameManager.instancia.RegistrarVisitaNPC(npcId);
-
-        if (!string.IsNullOrEmpty(siguienteObjetivo))
-            MisionManager.instancia.CompletarObjetivo(siguienteObjetivo);
-
-        string[] dialogos = { dialogo1, dialogo2, dialogo3 };
-        string texto = dialogos[dialogoActual % dialogos.Length];
-        dialogoActual++;
-
-        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, texto, this, imagenPersonaje, fondoDialogo);
+        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, mensajeBloqueado, this, imagenPersonaje, fondoDialogo);
     }
+
+    void AbrirDialogo()
+{
+    dialogoAbierto = true;
+    if (senaletica != null)
+        senaletica.SetActive(false);
+
+    GameManager.instancia.RegistrarVisitaNPC(npcId);
+
+    if (!string.IsNullOrEmpty(siguienteObjetivo))
+        MisionManager.instancia.CompletarObjetivo(siguienteObjetivo);
+
+    string[] dialogos = { dialogo1, dialogo2, dialogo3 };
+    string texto = dialogos[dialogoActual % dialogos.Length];
+
+    bool esUltimoDialogo = (dialogoActual >= dialogos.Length - 1);
+    dialogoActual++;
+
+    DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, texto, this, imagenPersonaje, fondoDialogo);
+
+    if (activaMinijuego && esUltimoDialogo)
+    {
+        Invoke("LanzarMinijuego", 0.5f);
+    }
+}
+
+void LanzarMinijuego()
+{
+    if (!string.IsNullOrEmpty(archivoMinijuego))
+        MinijuegoManager.instancia.AbrirMinijuego(archivoMinijuego);
+}
 
     public void CerrarDialogo()
     {
