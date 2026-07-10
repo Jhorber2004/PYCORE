@@ -734,7 +734,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 350, y: -30}
+  m_AnchoredPosition: {x: 330, y: -170}
   m_SizeDelta: {x: 100, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &59383971
@@ -2269,6 +2269,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 320698991}
   m_CullTransparentMesh: 1
+--- !u!1 &338613324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 338613325}
+  m_Layer: 0
+  m_Name: MinijuegoManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &338613325
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338613324}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -41.01036, y: -25.52013, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &357768351
 GameObject:
   m_ObjectHideFlags: 0
@@ -2602,14 +2633,16 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 2130837760}
+  - {fileID: 514698537}
   - {fileID: 1717984898}
   - {fileID: 1808374718}
   - {fileID: 51032995}
   m_Father: {fileID: 1371794920}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -190}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &381999127
@@ -3586,6 +3619,81 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 482270388}
   m_CullTransparentMesh: 1
+--- !u!1 &514698534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 514698537}
+  - component: {fileID: 514698536}
+  - component: {fileID: 514698535}
+  m_Layer: 5
+  m_Name: ImagenNPC
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &514698535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 514698534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &514698536
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 514698534}
+  m_CullTransparentMesh: 1
+--- !u!224 &514698537
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 514698534}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 381999126}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -50, y: 50}
+  m_SizeDelta: {x: 200, y: 380}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -4103,9 +4211,12 @@ MonoBehaviour:
     Habla con el Profesor Evaluador cuando estes listo. El te dara el siguiente paso.
 
 '
-  siguienteObjetivo: 
+  siguienteObjetivo: Habla con el Profesor Evaluador para rendir tu examen
+  mensajeBloqueado: No hemos hablado antes. Ve con Rosa primero, ella sabe mas.
   imagenPersonaje: {fileID: 2000430112205804095, guid: 68ee0e4658e1ca1418708ba5e55f0e09, type: 3}
   fondoDialogo: {fileID: -4411869859887923275, guid: 2966e65e017d4c143a79f39e70e64c8b, type: 3}
+  activaMinijuego: 0
+  archivoMinijuego: 
   senaletica: {fileID: 1460345932}
 --- !u!70 &563975057
 CapsuleCollider2D:
@@ -4220,7 +4331,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7803012530442632789, guid: 05143f64e36d84e47951cddaaddb2039, type: 3}
+  m_Sprite: {fileID: 3204876569040086433, guid: 0e0ccbb1dca463248893c54c808c60e7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -4239,8 +4350,8 @@ Transform:
   m_GameObject: {fileID: 563975055}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -36.29046, y: -16.79226, z: 0}
-  m_LocalScale: {x: 0.7, y: 0.7, z: 1}
+  m_LocalPosition: {x: -37.39, y: -31.14, z: 0}
+  m_LocalScale: {x: 0.7, y: 0.69279003, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1460345933}
@@ -7046,9 +7157,12 @@ MonoBehaviour:
     el problema!"
   dialogo3: "Ya casi lo tienes. Recuerda: un buen algoritmo tiene inicio, desarrollo
     y fin. \xBFTu horario tiene eso?"
-  siguienteObjetivo: 
+  siguienteObjetivo: Habla con Rosa, la asistente del laboratorio
+  mensajeBloqueado: Espera, primero habla con Prof. Byte sobre el problema.
   imagenPersonaje: {fileID: 4615444777233488532, guid: f7ed2c83ab2f5184bb2c469efc9eee83, type: 3}
   fondoDialogo: {fileID: -4411869859887923275, guid: 2966e65e017d4c143a79f39e70e64c8b, type: 3}
+  activaMinijuego: 0
+  archivoMinijuego: 
   senaletica: {fileID: 892797631}
 --- !u!212 &1077220306
 SpriteRenderer:
@@ -8963,8 +9077,8 @@ MonoBehaviour:
   textoNombre: {fileID: 1717984900}
   textoDialogo: {fileID: 1808374720}
   botonCerrar: {fileID: 51032992}
-  imagenNPC: {fileID: 0}
-  fondoImagen: {fileID: 0}
+  imagenNPC: {fileID: 514698535}
+  fondoImagen: {fileID: 2130837758}
 --- !u!1 &1398154267
 GameObject:
   m_ObjectHideFlags: 0
@@ -11026,7 +11140,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 20}
+  m_AnchoredPosition: {x: 0, y: -150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1717984899
@@ -11652,7 +11766,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -20}
+  m_AnchoredPosition: {x: 0, y: -180}
   m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1808374719
@@ -11885,9 +11999,12 @@ MonoBehaviour:
     de patrones, abstracci\xF3n y algoritmos. \xBFPor cu\xE1l quieres empezar?"
   dialogo3: 'Recuerda: los computadores no piensan solos, necesitan instrucciones
     precisas. Tu trabajo es aprender a darlas '
-  siguienteObjetivo: 
+  siguienteObjetivo: Busca al Tecnico Miguel en el fondo del laboratorio
+  mensajeBloqueado: Todavia no. Primero necesitas hablar con Carlos.
   imagenPersonaje: {fileID: 2191623771482562414, guid: b6845db96fdc1e34bb6d378fe79ba2ff, type: 3}
   fondoDialogo: {fileID: -4411869859887923275, guid: 2966e65e017d4c143a79f39e70e64c8b, type: 3}
+  activaMinijuego: 0
+  archivoMinijuego: 
   senaletica: {fileID: 1053625984}
 --- !u!212 &1875068569
 SpriteRenderer:
@@ -14327,6 +14444,81 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2130837757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2130837760}
+  - component: {fileID: 2130837759}
+  - component: {fileID: 2130837758}
+  m_Layer: 5
+  m_Name: FondoImagen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2130837758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2130837757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &2130837759
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2130837757}
+  m_CullTransparentMesh: 1
+--- !u!224 &2130837760
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2130837757}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 381999126}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2141291574
 GameObject:
   m_ObjectHideFlags: 0
@@ -14441,3 +14633,4 @@ SceneRoots:
   - {fileID: 2040328328}
   - {fileID: 1886042679}
   - {fileID: 563975060}
+  - {fileID: 338613325}
