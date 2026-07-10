@@ -520,14 +520,31 @@ MonoBehaviour:
   nombreNPC: Prof. Byte
   npcId: prof_byte
   imagenPersonaje: {fileID: 2054227885219481626, guid: 23bf7500f956c304690f0838be72ab28, type: 3}
-  systemPrompt: "Eres Prof. Byte, un personaje del videojuego educativo PYCORE de
-    la Universidad Central del Ecuador. Tu rol es guiar al estudiante Alex a entender
-    qu\xE9 es el pensamiento computacional. REGLAS: Nunca des la respuesta directa,
-    siempre da pistas. Usa ejemplos universitarios. M\xE1ximo 3 oraciones por respuesta.
-    Tono amigable y motivador."
-  opcion1: "\xBFQu\xE9 es el pensamiento computacional?"
-  opcion2: "\xBFC\xF3mo se descompone un problema?"
-  opcion3: "Dame una pista para la misi\xF3n"
+  systemPrompt: 'Eres Prof. Byte, un profesor de Pensamiento Computacional de la
+    PCEI en la Universidad Central del Ecuador. Tienes personalidad sarcastica pero
+    genuinamente quieres que Alex aprenda. Hablas con referencias a la tecnologia
+    y la vida universitaria.
+
+    
+
+    CONTEXTO: Alex llega al laboratorio para
+    rendir su examen final de Pensamiento Computacional y su PC no enciende. Los
+    profesores no pueden ayudarlo. Alex debe resolver el problema solo aplicando
+    pensamiento computacional.
+
+    
+
+    TU ROL: Guiar a Alex para que piense
+    algoritmicamente y diagnostique el problema de su PC paso a paso.
+
+    
+
+    REGLAS:
+    Nunca des la solucion directa. Da pistas progresivas. Recuerda lo que ya dijiste.
+    Maximo 3 oraciones. Tono amigable con humor tecnico.'
+  opcion1: Profe, mi PC no enciende y tengo el examen ahora
+  opcion2: Como aplico el pensamiento computacional para diagnosticar mi PC?
+  opcion3: Dame una pista por donde empezar
   senaletica: {fileID: 1746014780}
 --- !u!212 &49968451
 SpriteRenderer:
@@ -7150,13 +7167,13 @@ MonoBehaviour:
   distanciaInteraccion: 3
   nombreNPC: "Carlos (Compa\xF1ero)"
   npcId: npc_carlos
-  dialogo1: "Oye Alex, \xBFsab\xEDas que un algoritmo es como una receta de cocina?
-    Tiene pasos en orden y si los sigues bien, siempre obtienes el mismo resultado "
-  dialogo2: "Te cuento un secreto: para organizar tu horario piensa primero en QU\xC9
-    tienes que hacer, luego en CU\xC1NDO y finalmente en C\xD3MO. \xA1Eso es descomponer
-    el problema!"
-  dialogo3: "Ya casi lo tienes. Recuerda: un buen algoritmo tiene inicio, desarrollo
-    y fin. \xBFTu horario tiene eso?"
+  dialogo1: Oye Alex, tranquilo. Cuando mi PC tuvo ese problema primero verifique
+    que el cable de corriente estuviera bien conectado. Suena obvio pero es el primer
+    paso de cualquier diagnostico.
+  dialogo2: Ya revisaste la corriente? Si eso esta bien, el siguiente paso es verificar
+    que el monitor este encendido y conectado correctamente a la PC.
+  dialogo3: Si la corriente y el monitor estan bien, el problema podria ser interno.
+    Habla con Rosa, ella sabe mas de hardware.
   siguienteObjetivo: Habla con Rosa, la asistente del laboratorio
   mensajeBloqueado: Espera, primero habla con Prof. Byte sobre el problema.
   imagenPersonaje: {fileID: 4615444777233488532, guid: f7ed2c83ab2f5184bb2c469efc9eee83, type: 3}
@@ -11993,12 +12010,14 @@ MonoBehaviour:
   distanciaInteraccion: 3
   nombreNPC: Rosa (Bibliotecaria)
   npcId: npc_rosa
-  dialogo1: "Buenos d\xEDas. \xBFBuscas informaci\xF3n sobre pensamiento computacional?
-    Mira, es como organizar los libros de esta biblioteca: necesitas un sistema l\xF3gico"
-  dialogo2: "El pensamiento computacional tiene 4 pilares: descomposici\xF3n, reconocimiento
-    de patrones, abstracci\xF3n y algoritmos. \xBFPor cu\xE1l quieres empezar?"
-  dialogo3: 'Recuerda: los computadores no piensan solos, necesitan instrucciones
-    precisas. Tu trabajo es aprender a darlas '
+  dialogo1: 'Alex, para diagnosticar una PC que no enciende debes seguir pasos en
+    orden. Primero lo externo: cables y corriente. Luego lo interno: RAM, disco duro
+    y fuente de poder.'
+  dialogo2: 'El pensamiento computacional dice que debes descomponer el problema.
+    No intentes arreglar todo a la vez. Ve parte por parte: fuente de poder, luego
+    RAM, luego disco.'
+  dialogo3: Si ya revisaste todo lo externo y sigue sin encender, el problema es
+    interno. El Tecnico Miguel en el fondo del laboratorio puede ayudarte con eso.
   siguienteObjetivo: Busca al Tecnico Miguel en el fondo del laboratorio
   mensajeBloqueado: Todavia no. Primero necesitas hablar con Carlos.
   imagenPersonaje: {fileID: 2191623771482562414, guid: b6845db96fdc1e34bb6d378fe79ba2ff, type: 3}
