@@ -20,6 +20,7 @@ public class QuizManager : MonoBehaviour
     private int preguntaActual = 0;
     private int respuestasCorrectas = 0;
     private int capitulo = 1;
+    private NPCEvaluador evaluadorActual;
 
     void Awake()
     {
@@ -27,12 +28,20 @@ public class QuizManager : MonoBehaviour
         panelQuiz.SetActive(false);
     }
 
-    public void IniciarQuiz(int numeroCapitulo)
+    public void IniciarQuiz(int numeroCapitulo, NPCEvaluador evaluador = null)
     {
         capitulo = numeroCapitulo;
+        evaluadorActual = evaluador;
         preguntaActual = 0;
         respuestasCorrectas = 0;
         preguntas = ObtenerPreguntasCapitulo(capitulo);
+
+        if (preguntas.Count == 0)
+        {
+            Debug.LogWarning("QuizManager: no hay preguntas cargadas para el capitulo " + capitulo + ". Revisa ObtenerPreguntasCapitulo().");
+            return;
+        }
+
         preguntas = MezclarPreguntas(preguntas);
         panelQuiz.SetActive(true);
         botonSiguiente.gameObject.SetActive(false);
@@ -99,6 +108,8 @@ public class QuizManager : MonoBehaviour
 
     void MostrarResultadoFinal()
     {
+        if (preguntas.Count == 0) return;
+
         int puntaje = (respuestasCorrectas * 40) / preguntas.Count;
         GameManager.instancia.AgregarPuntos(puntaje);
         GameManager.instancia.GuardarProgreso();
@@ -137,6 +148,8 @@ public class QuizManager : MonoBehaviour
     {
         panelQuiz.SetActive(false);
         GameManager.instancia.CompletarCapitulo(capitulo);
+        if (evaluadorActual != null)
+            evaluadorActual.CerrarEvaluacion();
     }
 
     List<Pregunta> MezclarPreguntas(List<Pregunta> lista)

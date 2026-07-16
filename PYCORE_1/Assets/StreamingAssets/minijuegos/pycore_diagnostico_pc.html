@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PYCORE - Diagnóstico de PC</title>
+<style>
+  :root{
+    --bg-1:#0a0e27;
+    --bg-2:#1a1f3a;
+    --accent:#7ee0d8;
+    --accent-dim:#4a8f8a;
+    --ok:#4ade80;
+    --bad:#f87171;
+    --card-bg:#161b36;
+    --card-border:#2a3160;
+    --text:#e8ecff;
+    --text-dim:#8b93c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    color:var(--text);
+    overflow:hidden;
+    user-select:none;
+  }
+  #game{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;
+    align-items:center;
+    padding:18px 20px 24px;
+    position:relative;
+  }
+
+  /* ---------- HEADER ---------- */
+  #header{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  #title-block h1{
+    font-size:20px;
+    letter-spacing:2px;
+    color:var(--accent);
+    font-weight:700;
+  }
+  #title-block p{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+  #timer-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(126,224,216,0.08);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:8px 16px;
+  }
+  #timer-icon{
+    width:16px;height:16px;
+    border:2px solid var(--accent);
+    border-radius:50%;
+    position:relative;
+  }
+  #timer-icon::after{
+    content:'';
+    position:absolute;
+    top:1px;left:50%;
+    width:1.5px;height:6px;
+    background:var(--accent);
+    transform-origin:bottom center;
+  }
+  #timer{
+    font-size:20px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+    font-variant-numeric:tabular-nums;
+  }
+  #timer.warning{
+    color:var(--bad);
+    animation:blink 0.6s infinite;
+  }
+  #timer.warning ~ #timer-icon, .warning-icon{
+    border-color:var(--bad);
+  }
+  @keyframes blink{
+    0%,100%{opacity:1;}
+    50%{opacity:0.3;}
+  }
+
+  /* ---------- STORY ---------- */
+  #story{
+    width:100%;
+    max-width:1000px;
+    background:rgba(126,224,216,0.05);
+    border:1px solid var(--card-border);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:10px 16px;
+    margin-bottom:16px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--text-dim);
+  }
+  #story b{color:var(--accent);}
+
+  /* ---------- SLOTS ---------- */
+  #slots-container{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    gap:10px;
+    justify-content:space-between;
+    margin-bottom:22px;
+  }
+  .slot{
+    flex:1;
+    min-width:0;
+    height:150px;
+    border:2px dashed var(--card-border);
+    border-radius:10px;
+    position:relative;
+    background:rgba(255,255,255,0.02);
+    transition:border-color .2s, background .2s;
+  }
+  .slot .slot-number{
+    position:absolute;
+    top:-11px;
+    left:50%;
+    transform:translateX(-50%);
+    width:22px;height:22px;
+    background:var(--bg-2);
+    border:2px solid var(--accent-dim);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .slot.drag-over{
+    border-color:var(--accent);
+    background:rgba(126,224,216,0.08);
+  }
+  .slot.filled{
+    border-style:solid;
+    border-color:var(--card-border);
+  }
+  .slot.correct{
+    border-color:var(--ok);
+    background:rgba(74,222,128,0.08);
+  }
+  .slot.incorrect{
+    border-color:var(--bad);
+    background:rgba(248,113,113,0.08);
+  }
+
+  /* ---------- CARDS ---------- */
+  #pool{
+    width:100%;
+    max-width:1000px;
+    min-height:150px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-content:flex-start;
+    padding-top:6px;
+    border-top:1px solid var(--card-border);
+  }
+  #pool-label{
+    width:100%;
+    max-width:1000px;
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+
+  .card{
+    width:150px;
+    height:150px;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:12px 10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    cursor:grab;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    transition:transform .15s, box-shadow .15s, border-color .15s;
+    position:relative;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    border-color:var(--accent-dim);
+    box-shadow:0 8px 20px rgba(0,0,0,0.5);
+  }
+  .card.dragging{
+    opacity:0.35;
+  }
+  .card-shape{
+    width:26px;height:26px;
+    border:2px solid var(--accent);
+    border-radius:5px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--accent);
+  }
+  .card-text{
+    font-size:12.5px;
+    line-height:1.35;
+    color:var(--text);
+  }
+  .card.correct{
+    border-color:var(--ok);
+    box-shadow:0 0 0 1px var(--ok), 0 4px 14px rgba(74,222,128,0.25);
+  }
+  .card.correct .card-shape{
+    border-color:var(--ok);
+    color:var(--ok);
+  }
+  .card.incorrect{
+    border-color:var(--bad);
+    box-shadow:0 0 0 1px var(--bad), 0 4px 14px rgba(248,113,113,0.25);
+  }
+  .card.incorrect .card-shape{
+    border-color:var(--bad);
+    color:var(--bad);
+  }
+
+  /* ---------- CONTROLS ---------- */
+  #controls{
+    width:100%;
+    max-width:1000px;
+    display:flex;
+    justify-content:center;
+    margin-top:22px;
+  }
+  #verify-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:13px 40px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+  }
+  #verify-btn:hover:not(:disabled){
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+  #verify-btn:disabled{
+    background:var(--card-bg);
+    color:var(--text-dim);
+    cursor:not-allowed;
+    box-shadow:none;
+    border:1px solid var(--card-border);
+  }
+
+  #feedback{
+    width:100%;
+    max-width:1000px;
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:10px;
+    min-height:18px;
+  }
+
+  /* ---------- RESULT SCREEN ---------- */
+  #result-screen{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+  }
+  #result-screen.show{display:flex;}
+  #result-shape{
+    width:90px;height:90px;
+    border:3px solid var(--accent);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+    position:relative;
+  }
+  #result-shape::before{
+    content:'';
+    width:36px;height:36px;
+    border:3px solid var(--accent);
+    transform:rotate(45deg);
+  }
+  #result-title{
+    font-size:24px;
+    color:var(--accent);
+    letter-spacing:2px;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  #result-sub{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:28px;
+    max-width:400px;
+    line-height:1.5;
+  }
+  #score-box{
+    background:rgba(126,224,216,0.06);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:22px 50px;
+    margin-bottom:30px;
+  }
+  #score-value{
+    font-size:46px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+  }
+  #score-max{
+    font-size:16px;
+    color:var(--text-dim);
+  }
+  #score-label{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  #continue-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:14px 48px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+    transition:transform .15s, box-shadow .15s;
+  }
+  #continue-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+
+  @media (max-width:760px){
+    #slots-container{flex-wrap:wrap;}
+    .slot{flex:0 0 30%;height:110px;}
+    .card{width:120px;height:130px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+
+  <div id="header">
+    <div id="title-block">
+      <h1>PYCORE</h1>
+      <p>Módulo · Pensamiento Computacional</p>
+    </div>
+    <div id="timer-box">
+      <div id="timer-icon"></div>
+      <div id="timer">02:00</div>
+    </div>
+  </div>
+
+  <div id="story">
+    <b>Situación:</b> Tienes un examen en una hora y tu PC no enciende.
+    Ayúdalo a ordenar los pasos de diagnóstico en la secuencia lógica correcta,
+    arrastrando las tarjetas hacia los espacios numerados.
+  </div>
+
+  <div id="slots-container">
+    <!-- 6 slots generados por JS -->
+  </div>
+
+  <div id="pool-label">Tarjetas disponibles</div>
+  <div id="pool">
+    <!-- cards generadas por JS -->
+  </div>
+
+  <div id="controls">
+    <button id="verify-btn" disabled>Verificar orden</button>
+  </div>
+  <div id="feedback"></div>
+
+  <div id="result-screen">
+    <div id="result-shape"></div>
+    <div id="result-title" id="result-title-text">DIAGNÓSTICO COMPLETO</div>
+    <div id="result-sub" id="result-sub-text"></div>
+    <div id="score-box">
+      <span id="score-value">0</span><span id="score-max"> / 40</span>
+      <div id="score-label">Puntos obtenidos</div>
+    </div>
+    <button id="continue-btn">Continuar</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- DATA ----------
+  const steps = [
+    { id: 1, text: "Verificar que el cable de corriente esté conectado" },
+    { id: 2, text: "Revisar que el tomacorriente funcione con otro dispositivo" },
+    { id: 3, text: "Comprobar que el botón de encendido responda" },
+    { id: 4, text: "Abrir el case y verificar la fuente de poder" },
+    { id: 5, text: "Revisar las conexiones internas (RAM, disco duro)" },
+    { id: 6, text: "Encender la PC y confirmar que funciona" }
+  ];
+  const TOTAL_TIME = 120; // seconds
+  const MAX_SCORE = 40;
+
+  let timeLeft = TOTAL_TIME;
+  let timerInterval = null;
+  let verified = false;
+  let finished = false;
+
+  // slot state: array of 6, each holds card id or null
+  let slotState = new Array(6).fill(null);
+
+  // ---------- SHUFFLE ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // ---------- BUILD DOM ----------
+  const slotsContainer = document.getElementById('slots-container');
+  const pool = document.getElementById('pool');
+  const verifyBtn = document.getElementById('verify-btn');
+  const feedback = document.getElementById('feedback');
+  const timerEl = document.getElementById('timer');
+
+  function buildSlots(){
+    slotsContainer.innerHTML = '';
+    for(let i=0;i<6;i++){
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.index = i;
+      const num = document.createElement('div');
+      num.className = 'slot-number';
+      num.textContent = (i+1);
+      slot.appendChild(num);
+      attachSlotEvents(slot);
+      slotsContainer.appendChild(slot);
+    }
+  }
+
+  function createCardEl(step){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.draggable = true;
+    card.dataset.id = step.id;
+
+    const shape = document.createElement('div');
+    shape.className = 'card-shape';
+    shape.textContent = '»';
+
+    const text = document.createElement('div');
+    text.className = 'card-text';
+    text.textContent = step.text;
+
+    card.appendChild(shape);
+    card.appendChild(text);
+    attachCardEvents(card);
+    return card;
+  }
+
+  function buildPool(){
+    pool.innerHTML = '';
+    const shuffled = shuffle(steps);
+    shuffled.forEach(step => {
+      pool.appendChild(createCardEl(step));
+    });
+  }
+
+  // ---------- DRAG AND DROP ----------
+  let draggedCard = null;
+
+  function attachCardEvents(card){
+    card.addEventListener('dragstart', (e) => {
+      if(finished) { e.preventDefault(); return; }
+      draggedCard = card;
+      setTimeout(()=>card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      draggedCard = null;
+    });
+  }
+
+  function attachSlotEvents(slot){
+    slot.addEventListener('dragover', (e) => {
+      if(finished) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      slot.classList.add('drag-over');
+    });
+    slot.addEventListener('dragleave', () => {
+      slot.classList.remove('drag-over');
+    });
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      if(finished || !draggedCard) return;
+      placeCardInSlot(draggedCard, slot);
+    });
+  }
+
+  // also allow pool to accept drop (send card back to pool)
+  pool.addEventListener('dragover', (e) => {
+    if(finished) return;
+    e.preventDefault();
+  });
+  pool.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if(finished || !draggedCard) return;
+    returnCardToPool(draggedCard);
+  });
+
+  function clearVerificationStyles(){
+    document.querySelectorAll('.card').forEach(c=>{
+      c.classList.remove('correct','incorrect');
+    });
+    document.querySelectorAll('.slot').forEach(s=>{
+      s.classList.remove('correct','incorrect');
+    });
+  }
+
+  function placeCardInSlot(card, slot){
+    clearVerificationStyles();
+    verified = false;
+
+    const slotIndex = parseInt(slot.dataset.index, 10);
+    const cardId = parseInt(card.dataset.id, 10);
+
+    // if slot already occupied, move that occupant back to pool
+    const existingCardId = slotState[slotIndex];
+    if(existingCardId !== null && existingCardId !== cardId){
+      const existingCardEl = document.querySelector('.card[data-id="'+existingCardId+'"]');
+      if(existingCardEl){
+        pool.appendChild(existingCardEl);
+      }
+    }
+
+    // if the dragged card was already in another slot, free that slot
+    const prevIndex = slotState.indexOf(cardId);
+    if(prevIndex !== -1){
+      slotState[prevIndex] = null;
+      updateSlotVisual(prevIndex);
+    }
+
+    // place card
+    slot.querySelectorAll('.card').forEach(c=>c.remove());
+    // remove slot-number visual is kept, just append card after it
+    slot.appendChild(card);
+    slotState[slotIndex] = cardId;
+    updateSlotVisual(slotIndex);
+
+    checkPoolComplete();
+  }
+
+  function returnCardToPool(card){
+    clearVerificationStyles();
+    verified = false;
+    const cardId = parseInt(card.dataset.id, 10);
+    const prevIndex = slotState.indexOf(cardId);
+    if(prevIndex !== -1){
+      slotState[prevIndex] = null;
+      updateSlotVisual(prevIndex);
+    }
+    pool.appendChild(card);
+    checkPoolComplete();
+  }
+
+  function updateSlotVisual(index){
+    const slot = slotsContainer.children[index];
+    if(slotState[index] !== null){
+      slot.classList.add('filled');
+    } else {
+      slot.classList.remove('filled');
+    }
+  }
+
+  function checkPoolComplete(){
+    const allFilled = slotState.every(v => v !== null);
+    verifyBtn.disabled = !allFilled || finished;
+    feedback.textContent = '';
+  }
+
+  // ---------- TIMER ----------
+  function formatTime(t){
+    const m = Math.floor(t/60).toString().padStart(2,'0');
+    const s = (t%60).toString().padStart(2,'0');
+    return m + ':' + s;
+  }
+
+  function startTimer(){
+    timerEl.textContent = formatTime(timeLeft);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if(timeLeft <= 20){
+        timerEl.classList.add('warning');
+      }
+      if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        timeLeft = 0;
+        onTimeUp();
+      }
+    }, 1000);
+  }
+
+  function onTimeUp(){
+    if(finished) return;
+    finished = true;
+    verifyBtn.disabled = true;
+    const correctCount = countCorrect();
+    showResult(correctCount, true);
+  }
+
+  // ---------- VERIFY ----------
+  function countCorrect(){
+    let correct = 0;
+    for(let i=0;i<6;i++){
+      if(slotState[i] === steps[i].id) correct++;
+    }
+    return correct;
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if(finished) return;
+    verified = true;
+    const correctCount = countCorrect();
+
+    for(let i=0;i<6;i++){
+      const slot = slotsContainer.children[i];
+      const cardEl = slot.querySelector('.card');
+      const isCorrect = slotState[i] === steps[i].id;
+      slot.classList.remove('correct','incorrect');
+      if(cardEl){
+        cardEl.classList.remove('correct','incorrect');
+        if(isCorrect){
+          slot.classList.add('correct');
+          cardEl.classList.add('correct');
+        } else {
+          slot.classList.add('incorrect');
+          cardEl.classList.add('incorrect');
+        }
+      }
+    }
+
+    if(correctCount === 6){
+      finished = true;
+      clearInterval(timerInterval);
+      feedback.textContent = '';
+      setTimeout(()=>showResult(6,false), 700);
+    } else {
+      feedback.textContent = correctCount + ' de 6 tarjetas en la posición correcta. Reordena las marcadas en rojo e inténtalo de nuevo.';
+    }
+  });
+
+  // ---------- RESULT ----------
+  const resultScreen = document.getElementById('result-screen');
+  const resultTitle = document.getElementById('result-title-text');
+  const resultSub = document.getElementById('result-sub-text');
+  const scoreValue = document.getElementById('score-value');
+  const continueBtn = document.getElementById('continue-btn');
+
+  function showResult(correctCount, timeExpired){
+    clearInterval(timerInterval);
+    finished = true;
+
+    const score = Math.round((correctCount/6) * MAX_SCORE);
+
+    if(correctCount === 6){
+      resultTitle.textContent = 'DIAGNÓSTICO COMPLETO';
+      resultSub.textContent = 'Seguiste la secuencia correcta y tu PC ya está lista para el examen.';
+    } else if(timeExpired){
+      resultTitle.textContent = 'TIEMPO AGOTADO';
+      resultSub.textContent = 'Se acabó el tiempo. Lograste ' + correctCount + ' de 6 pasos en la posición correcta.';
+    } else {
+      resultTitle.textContent = 'DIAGNÓSTICO PARCIAL';
+      resultSub.textContent = 'Lograste ' + correctCount + ' de 6 pasos en la posición correcta.';
+    }
+
+    scoreValue.textContent = score;
+    resultScreen.classList.add('show');
+
+    // Enviar resultado a Unity
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(score));
+      } catch (e) {}
+    }
+  }
+
+  continueBtn.addEventListener('click', () => {
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+      } catch (e) {}
+    }
+  });
+
+  // ---------- INIT ----------
+  function init(){
+    buildSlots();
+    buildPool();
+    startTimer();
+  }
+
+  init();
+
+})();
+</script>
+
+</body>
+</html>

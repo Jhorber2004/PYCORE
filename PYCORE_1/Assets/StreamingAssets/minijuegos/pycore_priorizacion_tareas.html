@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PYCORE - Priorización de Tareas</title>
+<style>
+  :root{
+    --bg-1:#0a0e27;
+    --bg-2:#1a1f3a;
+    --accent:#7ee0d8;
+    --accent-dim:#4a8f8a;
+    --ok:#4ade80;
+    --bad:#f87171;
+    --card-bg:#161b36;
+    --card-border:#2a3160;
+    --text:#e8ecff;
+    --text-dim:#8b93c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    color:var(--text);
+    overflow:hidden;
+    user-select:none;
+  }
+  #game{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;
+    align-items:center;
+    padding:16px 20px 20px;
+    position:relative;
+  }
+
+  /* ---------- HEADER ---------- */
+  #header{
+    width:100%;
+    max-width:720px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  #title-block h1{
+    font-size:20px;
+    letter-spacing:2px;
+    color:var(--accent);
+    font-weight:700;
+  }
+  #title-block p{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+  #timer-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(126,224,216,0.08);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:8px 16px;
+  }
+  #timer-icon{
+    width:16px;height:16px;
+    border:2px solid var(--accent);
+    border-radius:50%;
+    position:relative;
+  }
+  #timer-icon::after{
+    content:'';
+    position:absolute;
+    top:1px;left:50%;
+    width:1.5px;height:6px;
+    background:var(--accent);
+  }
+  #timer{
+    font-size:20px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+    font-variant-numeric:tabular-nums;
+  }
+  #timer.warning{
+    color:var(--bad);
+    animation:blink 0.6s infinite;
+  }
+  @keyframes blink{
+    0%,100%{opacity:1;}
+    50%{opacity:0.3;}
+  }
+
+  /* ---------- STORY ---------- */
+  #story{
+    width:100%;
+    max-width:720px;
+    background:rgba(126,224,216,0.05);
+    border:1px solid var(--card-border);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:10px 16px;
+    margin-bottom:16px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--text-dim);
+  }
+  #story b{color:var(--accent);}
+
+  /* ---------- LIST HEADER ---------- */
+  #list-legend{
+    width:100%;
+    max-width:720px;
+    display:flex;
+    justify-content:space-between;
+    font-size:10.5px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    padding:0 6px;
+    margin-bottom:6px;
+  }
+
+  /* ---------- LIST ---------- */
+  #list{
+    width:100%;
+    max-width:720px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .ticket{
+    display:flex;
+    align-items:stretch;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.35);
+    cursor:grab;
+    transition:transform .15s, box-shadow .15s, border-color .15s;
+    overflow:hidden;
+  }
+  .ticket:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.5);
+    border-color:var(--accent-dim);
+  }
+  .ticket.dragging{
+    opacity:0.35;
+  }
+  .ticket.drag-over-top{
+    box-shadow:inset 0 3px 0 0 var(--accent);
+  }
+  .ticket.drag-over-bottom{
+    box-shadow:inset 0 -3px 0 0 var(--accent);
+  }
+
+  .priority-num{
+    width:56px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:700;
+    color:var(--accent);
+    background:rgba(126,224,216,0.06);
+    border-right:1px solid var(--card-border);
+  }
+  .ticket-body{
+    flex:1;
+    padding:14px 16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:2px;
+  }
+  .ticket-label{
+    font-size:9.5px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .ticket-text{
+    font-size:13.5px;
+    color:var(--text);
+    line-height:1.3;
+  }
+  .ticket-handle{
+    width:34px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-dim);
+    font-size:16px;
+    letter-spacing:2px;
+  }
+
+  .ticket.correct{
+    border-color:var(--ok);
+    box-shadow:0 0 0 1px var(--ok), 0 4px 14px rgba(74,222,128,0.25);
+  }
+  .ticket.correct .priority-num{
+    color:var(--ok);
+    background:rgba(74,222,128,0.08);
+  }
+  .ticket.incorrect{
+    border-color:var(--bad);
+    box-shadow:0 0 0 1px var(--bad), 0 4px 14px rgba(248,113,113,0.25);
+  }
+  .ticket.incorrect .priority-num{
+    color:var(--bad);
+    background:rgba(248,113,113,0.08);
+  }
+
+  /* ---------- CONTROLS ---------- */
+  #controls{
+    width:100%;
+    max-width:720px;
+    display:flex;
+    justify-content:center;
+    margin-top:20px;
+  }
+  #verify-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:13px 40px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+  }
+  #verify-btn:hover:not(:disabled){
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+  #verify-btn:disabled{
+    background:var(--card-bg);
+    color:var(--text-dim);
+    cursor:not-allowed;
+    box-shadow:none;
+    border:1px solid var(--card-border);
+  }
+
+  #feedback{
+    width:100%;
+    max-width:720px;
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:10px;
+    min-height:18px;
+  }
+
+  /* ---------- RESULT SCREEN ---------- */
+  #result-screen{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+  }
+  #result-screen.show{display:flex;}
+  #result-shape{
+    width:90px;height:90px;
+    border:3px solid var(--accent);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+    position:relative;
+  }
+  #result-shape::before{
+    content:'';
+    width:36px;height:36px;
+    border:3px solid var(--accent);
+    transform:rotate(45deg);
+  }
+  #result-title{
+    font-size:24px;
+    color:var(--accent);
+    letter-spacing:2px;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  #result-sub{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:28px;
+    max-width:420px;
+    line-height:1.5;
+  }
+  #score-box{
+    background:rgba(126,224,216,0.06);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:22px 50px;
+    margin-bottom:30px;
+  }
+  #score-value{
+    font-size:46px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+  }
+  #score-max{
+    font-size:16px;
+    color:var(--text-dim);
+  }
+  #score-label{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  #continue-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:14px 48px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+    transition:transform .15s, box-shadow .15s;
+  }
+  #continue-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+
+  <div id="header">
+    <div id="title-block">
+      <h1>PYCORE</h1>
+      <p>Módulo · Priorización de Tareas</p>
+    </div>
+    <div id="timer-box">
+      <div id="timer-icon"></div>
+      <div id="timer">02:00</div>
+    </div>
+  </div>
+
+  <div id="story">
+    <b>Situación:</b> Tienes 5 tareas pendientes para reparar tu PC, pero el tiempo
+    es limitado. Ordénalas de mayor a menor prioridad: arriba lo que debes revisar
+    primero para que lo siguiente tenga sentido.
+  </div>
+
+  <div id="list-legend">
+    <span>Mayor prioridad</span>
+    <span>Menor prioridad</span>
+  </div>
+
+  <div id="list"></div>
+
+  <div id="controls">
+    <button id="verify-btn">Confirmar orden</button>
+  </div>
+  <div id="feedback"></div>
+
+  <div id="result-screen">
+    <div id="result-shape"></div>
+    <div id="result-title" id="result-title-text">PRIORIZACIÓN COMPLETA</div>
+    <div id="result-sub" id="result-sub-text"></div>
+    <div id="score-box">
+      <span id="score-value">0</span><span id="score-max"> / 40</span>
+      <div id="score-label">Puntos obtenidos</div>
+    </div>
+    <button id="continue-btn">Continuar</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- DATA ----------
+  // correctPriority = 1 (más urgente) .. 5 (menos urgente)
+  const tasks = [
+    { id: 1, text: "Verificar que la fuente de poder reciba corriente", correctPriority: 1 },
+    { id: 2, text: "Revisar si la placa madre enciende (luz LED)", correctPriority: 2 },
+    { id: 3, text: "Comprobar la memoria RAM", correctPriority: 3 },
+    { id: 4, text: "Verificar el disco duro", correctPriority: 4 },
+    { id: 5, text: "Probar los periféricos (teclado, mouse, monitor)", correctPriority: 5 }
+  ];
+  const TOTAL_TIME = 120; // 2:00
+  const MAX_SCORE = 40;
+
+  let timeLeft = TOTAL_TIME;
+  let timerInterval = null;
+  let finished = false;
+
+  // ---------- SHUFFLE ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // ---------- DOM REFS ----------
+  const listEl = document.getElementById('list');
+  const verifyBtn = document.getElementById('verify-btn');
+  const feedback = document.getElementById('feedback');
+  const timerEl = document.getElementById('timer');
+
+  function createTicketEl(task){
+    const ticket = document.createElement('div');
+    ticket.className = 'ticket';
+    ticket.draggable = true;
+    ticket.dataset.id = task.id;
+
+    const num = document.createElement('div');
+    num.className = 'priority-num';
+
+    const body = document.createElement('div');
+    body.className = 'ticket-body';
+    const label = document.createElement('div');
+    label.className = 'ticket-label';
+    label.textContent = 'Tarea';
+    const text = document.createElement('div');
+    text.className = 'ticket-text';
+    text.textContent = task.text;
+    body.appendChild(label);
+    body.appendChild(text);
+
+    const handle = document.createElement('div');
+    handle.className = 'ticket-handle';
+    handle.textContent = '⋮⋮';
+
+    ticket.appendChild(num);
+    ticket.appendChild(body);
+    ticket.appendChild(handle);
+
+    attachTicketEvents(ticket);
+    return ticket;
+  }
+
+  function buildList(){
+    listEl.innerHTML = '';
+    const shuffled = shuffle(tasks);
+    shuffled.forEach(task => {
+      listEl.appendChild(createTicketEl(task));
+    });
+    updatePriorityNumbers();
+  }
+
+  function updatePriorityNumbers(){
+    const tickets = Array.from(listEl.children);
+    tickets.forEach((ticket, index) => {
+      const numEl = ticket.querySelector('.priority-num');
+      numEl.textContent = (index + 1);
+    });
+  }
+
+  // ---------- DRAG AND DROP (reordering) ----------
+  let draggedTicket = null;
+
+  function attachTicketEvents(ticket){
+    ticket.addEventListener('dragstart', (e) => {
+      if(finished){ e.preventDefault(); return; }
+      draggedTicket = ticket;
+      setTimeout(()=>ticket.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', ticket.dataset.id);
+    });
+
+    ticket.addEventListener('dragend', () => {
+      ticket.classList.remove('dragging');
+      Array.from(listEl.children).forEach(t => {
+        t.classList.remove('drag-over-top','drag-over-bottom');
+      });
+      draggedTicket = null;
+      clearVerification();
+      updatePriorityNumbers();
+    });
+
+    ticket.addEventListener('dragover', (e) => {
+      if(finished || !draggedTicket || draggedTicket === ticket) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const rect = ticket.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      ticket.classList.remove('drag-over-top','drag-over-bottom');
+      if(e.clientY < midpoint){
+        ticket.classList.add('drag-over-top');
+      } else {
+        ticket.classList.add('drag-over-bottom');
+      }
+    });
+
+    ticket.addEventListener('dragleave', () => {
+      ticket.classList.remove('drag-over-top','drag-over-bottom');
+    });
+
+    ticket.addEventListener('drop', (e) => {
+      if(finished || !draggedTicket || draggedTicket === ticket) return;
+      e.preventDefault();
+
+      const rect = ticket.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      const insertBefore = e.clientY < midpoint;
+
+      ticket.classList.remove('drag-over-top','drag-over-bottom');
+
+      if(insertBefore){
+        listEl.insertBefore(draggedTicket, ticket);
+      } else {
+        listEl.insertBefore(draggedTicket, ticket.nextSibling);
+      }
+      updatePriorityNumbers();
+      clearVerification();
+    });
+  }
+
+  // allow dropping after the last item (drop on the list container itself)
+  listEl.addEventListener('dragover', (e) => {
+    if(finished || !draggedTicket) return;
+    e.preventDefault();
+  });
+  listEl.addEventListener('drop', (e) => {
+    if(finished || !draggedTicket) return;
+    // only handle if dropped on empty space of list, not on a ticket (tickets handle their own drop)
+    if(e.target === listEl){
+      e.preventDefault();
+      listEl.appendChild(draggedTicket);
+      updatePriorityNumbers();
+      clearVerification();
+    }
+  });
+
+  function clearVerification(){
+    Array.from(listEl.children).forEach(t => t.classList.remove('correct','incorrect'));
+    feedback.textContent = '';
+  }
+
+  // ---------- TIMER ----------
+  function formatTime(t){
+    const m = Math.floor(t/60).toString().padStart(2,'0');
+    const s = (t%60).toString().padStart(2,'0');
+    return m + ':' + s;
+  }
+
+  function startTimer(){
+    timerEl.textContent = formatTime(timeLeft);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if(timeLeft <= 20){
+        timerEl.classList.add('warning');
+      }
+      if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        timeLeft = 0;
+        onTimeUp();
+      }
+    }, 1000);
+  }
+
+  function onTimeUp(){
+    if(finished) return;
+    finished = true;
+    verifyBtn.disabled = true;
+    const correctCount = countCorrect();
+    markTickets();
+    showResult(correctCount, true);
+  }
+
+  // ---------- SCORING ----------
+  function getTaskById(id){
+    return tasks.find(t => t.id === id);
+  }
+
+  function countCorrect(){
+    const tickets = Array.from(listEl.children);
+    let correct = 0;
+    tickets.forEach((ticket, index) => {
+      const currentPriority = index + 1;
+      const task = getTaskById(parseInt(ticket.dataset.id, 10));
+      if(task.correctPriority === currentPriority) correct++;
+    });
+    return correct;
+  }
+
+  function markTickets(){
+    const tickets = Array.from(listEl.children);
+    tickets.forEach((ticket, index) => {
+      const currentPriority = index + 1;
+      const task = getTaskById(parseInt(ticket.dataset.id, 10));
+      ticket.classList.remove('correct','incorrect');
+      if(task.correctPriority === currentPriority){
+        ticket.classList.add('correct');
+      } else {
+        ticket.classList.add('incorrect');
+      }
+    });
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if(finished) return;
+    const correctCount = countCorrect();
+    markTickets();
+
+    if(correctCount === 5){
+      finished = true;
+      clearInterval(timerInterval);
+      verifyBtn.disabled = true;
+      feedback.textContent = '';
+      setTimeout(()=>showResult(5,false), 700);
+    } else {
+      feedback.textContent = correctCount + ' de 5 tareas en la posición correcta. Reordena las marcadas en rojo e inténtalo de nuevo.';
+    }
+  });
+
+  // ---------- RESULT ----------
+  const resultScreen = document.getElementById('result-screen');
+  const resultTitle = document.getElementById('result-title-text');
+  const resultSub = document.getElementById('result-sub-text');
+  const scoreValue = document.getElementById('score-value');
+  const continueBtn = document.getElementById('continue-btn');
+
+  function showResult(correctCount, timeExpired){
+    clearInterval(timerInterval);
+    finished = true;
+
+    const score = Math.round((correctCount/5) * MAX_SCORE);
+
+    if(correctCount === 5){
+      resultTitle.textContent = 'PRIORIZACIÓN COMPLETA';
+      resultSub.textContent = 'Ordenaste las tareas según su urgencia real y puedes avanzar con el diagnóstico de forma eficiente.';
+    } else if(timeExpired){
+      resultTitle.textContent = 'TIEMPO AGOTADO';
+      resultSub.textContent = 'Se acabó el tiempo. Lograste ' + correctCount + ' de 5 tareas en la posición correcta.';
+    } else {
+      resultTitle.textContent = 'PRIORIZACIÓN PARCIAL';
+      resultSub.textContent = 'Lograste ' + correctCount + ' de 5 tareas en la posición correcta.';
+    }
+
+    scoreValue.textContent = score;
+    resultScreen.classList.add('show');
+
+    // Enviar resultado a Unity
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(score));
+      } catch (e) {}
+    }
+  }
+
+  continueBtn.addEventListener('click', () => {
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+      } catch (e) {}
+    }
+  });
+
+  // ---------- INIT ----------
+  function init(){
+    buildList();
+    startTimer();
+  }
+
+  init();
+
+})();
+</script>
+
+</body>
+</html>

@@ -29,6 +29,12 @@ public class GameManager : MonoBehaviour
         {
             instancia = this;
             DontDestroyOnLoad(gameObject);
+
+            // El nombre ingresado en MenuManager.Jugar() se guarda aqui.
+            // Se aplica ANTES de CargarProgreso() para que un progreso guardado
+            // previamente no lo sobreescriba con un nombre viejo.
+            if (PlayerPrefs.HasKey("NombreEstudiante"))
+                nombreEstudiante = PlayerPrefs.GetString("NombreEstudiante");
         }
         else
         {

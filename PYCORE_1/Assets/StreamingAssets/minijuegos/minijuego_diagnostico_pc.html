@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diagnostico PC - PYCORE</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #0a0e27 0%, #1a1f3a 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    color: #e8eaf6;
+    overflow-x: hidden;
+  }
+
+  .hud {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .hud h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #7ee0d8;
+    letter-spacing: 0.5px;
+  }
+
+  .hud .sub {
+    font-size: 12px;
+    color: #8b93b8;
+    margin-top: 2px;
+  }
+
+  .timer {
+    background: rgba(126, 224, 216, 0.1);
+    border: 1px solid #2c3468;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #7ee0d8;
+    min-width: 90px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer.urgent {
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+    animation: pulse 0.6s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .board {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(20, 25, 55, 0.6);
+    border: 1px solid #2c3468;
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+  }
+
+  .pc-case {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16 / 11;
+    margin: 0 auto 24px;
+    background: linear-gradient(180deg, #12172e 0%, #0c0f22 100%);
+    border: 2px solid #2c3468;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .slot {
+    background: rgba(44, 52, 104, 0.25);
+    border: 2px dashed #3a4278;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+
+  .slot .slot-label {
+    font-size: 11px;
+    color: #6b7399;
+    text-align: center;
+    padding: 0 6px;
+  }
+
+  .slot.dragover {
+    border-color: #7ee0d8;
+    background: rgba(126, 224, 216, 0.12);
+  }
+
+  .slot.correct {
+    border-style: solid;
+    border-color: #5dcaa5;
+    background: rgba(93, 202, 165, 0.12);
+  }
+
+  .slot.correct::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #5dcaa5;
+  }
+
+  .slot .piece {
+    width: 72%;
+    height: 60%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+  }
+
+  .tray {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    padding-top: 18px;
+    border-top: 1px solid #2c3468;
+  }
+
+  .piece-card {
+    width: 84px;
+    height: 84px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: grab;
+    user-select: none;
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    transition: transform 0.15s;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .piece-card:active {
+    cursor: grabbing;
+  }
+
+  .piece-card.dragging {
+    opacity: 0.35;
+  }
+
+  .piece-card .name {
+    font-size: 10px;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    line-height: 1.15;
+  }
+
+  .c-fuente { background: linear-gradient(155deg, #D85A30, #993C1D); }
+  .c-ram { background: linear-gradient(155deg, #378ADD, #185FA5); }
+  .c-disco { background: linear-gradient(155deg, #639922, #3B6D11); }
+  .c-cable { background: linear-gradient(155deg, #7F77DD, #534AB7); }
+  .c-placa { background: linear-gradient(155deg, #EF9F27, #BA7517); }
+  .c-cooler { background: linear-gradient(155deg, #D4537E, #993556); }
+
+  .feedback {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 14px;
+    min-height: 20px;
+    color: #8b93b8;
+  }
+
+  .feedback.error { color: #ff8a8a; }
+  .feedback.success { color: #7ee0d8; }
+
+  .finish-btn {
+    display: block;
+    margin: 20px auto 0;
+    background: linear-gradient(135deg, #5dcaa5, #3b6d11);
+    color: #04342c;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .finish-btn.enabled {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 14, 39, 0.94);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .overlay.show { display: flex; }
+
+  .overlay-card {
+    max-width: 420px;
+  }
+
+  .overlay-card h2 {
+    font-size: 26px;
+    margin-bottom: 12px;
+    color: #7ee0d8;
+  }
+
+  .overlay-card p {
+    font-size: 14px;
+    color: #b7bce0;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .overlay-btn {
+    background: #7ee0d8;
+    color: #04342c;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <div>
+    <h1>Diagnostico de la PC</h1>
+    <div class="sub">Arrastra cada componente a su lugar correcto</div>
+  </div>
+  <div class="timer" id="timer">03:00</div>
+</div>
+
+<div class="board">
+  <div class="pc-case" id="pcCase">
+    <div class="slot" data-target="fuente"><span class="slot-label">Fuente de poder</span></div>
+    <div class="slot" data-target="placa"><span class="slot-label">Placa madre</span></div>
+    <div class="slot" data-target="ram"><span class="slot-label">Memoria RAM</span></div>
+    <div class="slot" data-target="disco"><span class="slot-label">Disco duro</span></div>
+    <div class="slot" data-target="cooler"><span class="slot-label">Ventilador</span></div>
+    <div class="slot" data-target="cable"><span class="slot-label">Cable de corriente</span></div>
+  </div>
+
+  <div class="tray" id="tray">
+    <div class="piece-card c-fuente" draggable="true" data-piece="fuente">
+      <div>&#9889;</div>
+      <div class="name">Fuente de poder</div>
+    </div>
+    <div class="piece-card c-placa" draggable="true" data-piece="placa">
+      <div>&#9707;</div>
+      <div class="name">Placa madre</div>
+    </div>
+    <div class="piece-card c-ram" draggable="true" data-piece="ram">
+      <div>&#9707;</div>
+      <div class="name">Memoria RAM</div>
+    </div>
+    <div class="piece-card c-disco" draggable="true" data-piece="disco">
+      <div>&#128190;</div>
+      <div class="name">Disco duro</div>
+    </div>
+    <div class="piece-card c-cooler" draggable="true" data-piece="cooler">
+      <div>&#10051;</div>
+      <div class="name">Ventilador</div>
+    </div>
+    <div class="piece-card c-cable" draggable="true" data-piece="cable">
+      <div>&#128268;</div>
+      <div class="name">Cable de corriente</div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback">Arrastra las piezas al lugar correcto del case.</div>
+  <button class="finish-btn" id="finishBtn">Encender PC</button>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <h2 id="overlayTitle">PC reparada</h2>
+    <p id="overlayText">Conectaste todos los componentes correctamente. Alex ya puede rendir su examen.</p>
+    <button class="overlay-btn" id="overlayBtn">Continuar</button>
+  </div>
+</div>
+
+<script>
+  var placed = {};
+  var totalSlots = 6;
+  var timeLeft = 180;
+  var timerInterval = null;
+  var finished = false;
+
+  var timerEl = document.getElementById('timer');
+  var feedbackEl = document.getElementById('feedback');
+  var finishBtn = document.getElementById('finishBtn');
+  var overlay = document.getElementById('overlay');
+  var overlayTitle = document.getElementById('overlayTitle');
+  var overlayText = document.getElementById('overlayText');
+
+  function formatTime(s) {
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return (m < 10 ? '0' + m : m) + ':' + (sec < 10 ? '0' + sec : sec);
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(function() {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if (timeLeft <= 30) timerEl.classList.add('urgent');
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        endGame(false);
+      }
+    }, 1000);
+  }
+  startTimer();
+
+  var pieces = document.querySelectorAll('.piece-card');
+  pieces.forEach(function(p) {
+    p.addEventListener('dragstart', function(e) {
+      e.dataTransfer.setData('text/plain', p.dataset.piece);
+      p.classList.add('dragging');
+    });
+    p.addEventListener('dragend', function() {
+      p.classList.remove('dragging');
+    });
+  });
+
+  var slots = document.querySelectorAll('.slot');
+  slots.forEach(function(slot) {
+    slot.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (!slot.classList.contains('correct')) slot.classList.add('dragover');
+    });
+    slot.addEventListener('dragleave', function() {
+      slot.classList.remove('dragover');
+    });
+    slot.addEventListener('drop', function(e) {
+      e.preventDefault();
+      slot.classList.remove('dragover');
+      if (slot.classList.contains('correct') || finished) return;
+
+      var pieceId = e.dataTransfer.getData('text/plain');
+      var target = slot.dataset.target;
+
+      if (pieceId === target) {
+        var pieceEl = document.querySelector('.piece-card[data-piece="' + pieceId + '"]');
+        var clone = pieceEl.cloneNode(true);
+        clone.removeAttribute('draggable');
+        clone.classList.remove('dragging');
+        clone.querySelector('.name').style.display = 'none';
+        clone.classList.add('piece');
+        slot.querySelector('.slot-label').style.display = 'none';
+        slot.appendChild(clone);
+        slot.classList.add('correct');
+        pieceEl.remove();
+
+        placed[pieceId] = true;
+        feedbackEl.textContent = 'Correcto. Esa pieza va ahi.';
+        feedbackEl.className = 'feedback success';
+
+        checkComplete();
+      } else {
+        feedbackEl.textContent = 'Esa pieza no va en ese lugar. Intenta de nuevo.';
+        feedbackEl.className = 'feedback error';
+      }
+    });
+  });
+
+  function checkComplete() {
+    var count = Object.keys(placed).length;
+    if (count >= totalSlots) {
+      finishBtn.classList.add('enabled');
+      feedbackEl.textContent = 'Todas las piezas estan en su lugar. Presiona Encender PC.';
+      feedbackEl.className = 'feedback success';
+    }
+  }
+
+  finishBtn.addEventListener('click', function() {
+    if (!finishBtn.classList.contains('enabled')) return;
+    clearInterval(timerInterval);
+    endGame(true);
+  });
+
+  function endGame(success) {
+    finished = true;
+    var count = Object.keys(placed).length;
+    var puntaje = Math.round((count / totalSlots) * 40);
+
+    if (success) {
+      overlayTitle.textContent = 'PC reparada';
+      overlayText.textContent = 'Conectaste ' + count + ' de ' + totalSlots + ' componentes correctamente. Puntos obtenidos: +' + puntaje;
+    } else {
+      overlayTitle.textContent = 'Se acabo el tiempo';
+      overlayText.textContent = 'Conectaste ' + count + ' de ' + totalSlots + ' componentes. Puntos obtenidos: +' + puntaje;
+    }
+    overlay.classList.add('show');
+
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(puntaje));
+      } catch (e) {}
+    }
+  }
+
+  document.getElementById('overlayBtn').addEventListener('click', function() {
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+      } catch (e) {}
+    }
+    overlay.classList.remove('show');
+  });
+</script>
+
+</body>
+</html>

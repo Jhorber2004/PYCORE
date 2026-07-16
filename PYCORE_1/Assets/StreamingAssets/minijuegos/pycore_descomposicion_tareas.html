@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PYCORE - Descomposición de Problemas</title>
+<style>
+  :root{
+    --bg-1:#0a0e27;
+    --bg-2:#1a1f3a;
+    --accent:#7ee0d8;
+    --accent-dim:#4a8f8a;
+    --ok:#4ade80;
+    --bad:#f87171;
+    --card-bg:#161b36;
+    --card-border:#2a3160;
+    --text:#e8ecff;
+    --text-dim:#8b93c4;
+
+    --cat-diag:#5aa9ff;
+    --cat-diag-dim:#2e5d94;
+    --cat-rep:#ff8a65;
+    --cat-rep-dim:#9a5540;
+    --cat-ver:#4ade80;
+    --cat-ver-dim:#2f7d51;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    color:var(--text);
+    overflow:hidden;
+    user-select:none;
+  }
+  #game{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;
+    align-items:center;
+    padding:16px 20px 20px;
+    position:relative;
+  }
+
+  /* ---------- HEADER ---------- */
+  #header{
+    width:100%;
+    max-width:1080px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  #title-block h1{
+    font-size:20px;
+    letter-spacing:2px;
+    color:var(--accent);
+    font-weight:700;
+  }
+  #title-block p{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+  #timer-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(126,224,216,0.08);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:8px 16px;
+  }
+  #timer-icon{
+    width:16px;height:16px;
+    border:2px solid var(--accent);
+    border-radius:50%;
+    position:relative;
+  }
+  #timer-icon::after{
+    content:'';
+    position:absolute;
+    top:1px;left:50%;
+    width:1.5px;height:6px;
+    background:var(--accent);
+  }
+  #timer{
+    font-size:20px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+    font-variant-numeric:tabular-nums;
+  }
+  #timer.warning{
+    color:var(--bad);
+    animation:blink 0.6s infinite;
+  }
+  @keyframes blink{
+    0%,100%{opacity:1;}
+    50%{opacity:0.3;}
+  }
+
+  /* ---------- MAIN TASK ---------- */
+  #main-task{
+    width:100%;
+    max-width:1080px;
+    background:rgba(126,224,216,0.05);
+    border:1px solid var(--card-border);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:10px 16px;
+    margin-bottom:14px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--text-dim);
+  }
+  #main-task b{color:var(--accent);}
+  #main-task .task-title{
+    font-size:15px;
+    color:var(--text);
+    font-weight:700;
+    margin-bottom:2px;
+    letter-spacing:0.5px;
+  }
+
+  /* ---------- ZONES ---------- */
+  #zones-container{
+    width:100%;
+    max-width:1080px;
+    display:flex;
+    gap:14px;
+    margin-bottom:16px;
+  }
+  .zone{
+    flex:1;
+    min-width:0;
+    min-height:190px;
+    border:2px dashed var(--card-border);
+    border-radius:12px;
+    padding:14px 10px 10px;
+    background:rgba(255,255,255,0.02);
+    transition:border-color .2s, background .2s;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .zone-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .zone-shape{
+    width:18px;height:18px;
+    border-radius:4px;
+    flex-shrink:0;
+  }
+  .zone-cards{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1;
+  }
+
+  .zone[data-cat="diagnostico"]{ }
+  .zone[data-cat="diagnostico"] .zone-header{ color:var(--cat-diag); }
+  .zone[data-cat="diagnostico"] .zone-shape{ background:var(--cat-diag); }
+  .zone[data-cat="diagnostico"].drag-over{ border-color:var(--cat-diag); background:rgba(90,169,255,0.08); }
+
+  .zone[data-cat="reparacion"] .zone-header{ color:var(--cat-rep); }
+  .zone[data-cat="reparacion"] .zone-shape{ background:var(--cat-rep); }
+  .zone[data-cat="reparacion"].drag-over{ border-color:var(--cat-rep); background:rgba(255,138,101,0.08); }
+
+  .zone[data-cat="verificacion"] .zone-header{ color:var(--cat-ver); }
+  .zone[data-cat="verificacion"] .zone-shape{ background:var(--cat-ver); }
+  .zone[data-cat="verificacion"].drag-over{ border-color:var(--cat-ver); background:rgba(74,222,128,0.08); }
+
+  /* ---------- POOL ---------- */
+  #pool-label{
+    width:100%;
+    max-width:1080px;
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  #pool{
+    width:100%;
+    max-width:1080px;
+    min-height:70px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-content:flex-start;
+    padding-top:4px;
+    border-top:1px solid var(--card-border);
+  }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:9px;
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:grab;
+    box-shadow:0 3px 10px rgba(0,0,0,0.35);
+    transition:transform .15s, box-shadow .15s, border-color .15s;
+    font-size:12.5px;
+    line-height:1.3;
+  }
+  #pool .card{
+    width:220px;
+  }
+  .zone-cards .card{
+    width:100%;
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(0,0,0,0.5);
+  }
+  .card.dragging{
+    opacity:0.35;
+  }
+  .card-dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--accent-dim);
+    flex-shrink:0;
+  }
+  .card.correct{
+    border-color:var(--ok);
+    box-shadow:0 0 0 1px var(--ok), 0 3px 10px rgba(74,222,128,0.25);
+  }
+  .card.correct .card-dot{ background:var(--ok); }
+  .card.incorrect{
+    border-color:var(--bad);
+    box-shadow:0 0 0 1px var(--bad), 0 3px 10px rgba(248,113,113,0.25);
+  }
+  .card.incorrect .card-dot{ background:var(--bad); }
+
+  /* ---------- CONTROLS ---------- */
+  #controls{
+    width:100%;
+    max-width:1080px;
+    display:flex;
+    justify-content:center;
+    margin-top:16px;
+  }
+  #verify-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:13px 40px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+  }
+  #verify-btn:hover:not(:disabled){
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+  #verify-btn:disabled{
+    background:var(--card-bg);
+    color:var(--text-dim);
+    cursor:not-allowed;
+    box-shadow:none;
+    border:1px solid var(--card-border);
+  }
+
+  #feedback{
+    width:100%;
+    max-width:1080px;
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:8px;
+    min-height:16px;
+  }
+
+  /* ---------- RESULT SCREEN ---------- */
+  #result-screen{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    background:linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    padding:20px;
+  }
+  #result-screen.show{display:flex;}
+  #result-shape{
+    width:90px;height:90px;
+    border:3px solid var(--accent);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+    position:relative;
+  }
+  #result-shape::before{
+    content:'';
+    width:36px;height:36px;
+    border:3px solid var(--accent);
+    transform:rotate(45deg);
+  }
+  #result-title{
+    font-size:24px;
+    color:var(--accent);
+    letter-spacing:2px;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+  #result-sub{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:28px;
+    max-width:420px;
+    line-height:1.5;
+  }
+  #score-box{
+    background:rgba(126,224,216,0.06);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:22px 50px;
+    margin-bottom:30px;
+  }
+  #score-value{
+    font-size:46px;
+    font-weight:700;
+    color:var(--accent);
+    letter-spacing:1px;
+  }
+  #score-max{
+    font-size:16px;
+    color:var(--text-dim);
+  }
+  #score-label{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  #continue-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-dim));
+    color:var(--bg-1);
+    border:none;
+    padding:14px 48px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(126,224,216,0.25);
+    transition:transform .15s, box-shadow .15s;
+  }
+  #continue-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 22px rgba(126,224,216,0.4);
+  }
+
+  @media (max-width:760px){
+    #zones-container{flex-direction:column;}
+    #pool .card{width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+
+  <div id="header">
+    <div id="title-block">
+      <h1>PYCORE</h1>
+      <p>Módulo · Descomposición de Problemas</p>
+    </div>
+    <div id="timer-box">
+      <div id="timer-icon"></div>
+      <div id="timer">02:30</div>
+    </div>
+  </div>
+
+  <div id="main-task">
+    <div class="task-title">Tarea principal: Reparar la PC dañada</div>
+    <b>Situación:</b> Te das cuenta de que "reparar la PC" es un problema demasiado grande
+    para resolverlo de una sola vez. Divídelo en subtareas más pequeñas y
+    arrástralas hacia la fase del proceso a la que pertenecen.
+  </div>
+
+  <div id="zones-container">
+    <div class="zone" data-cat="diagnostico">
+      <div class="zone-header"><span class="zone-shape"></span>Diagnóstico</div>
+      <div class="zone-cards"></div>
+    </div>
+    <div class="zone" data-cat="reparacion">
+      <div class="zone-header"><span class="zone-shape"></span>Reparación</div>
+      <div class="zone-cards"></div>
+    </div>
+    <div class="zone" data-cat="verificacion">
+      <div class="zone-header"><span class="zone-shape"></span>Verificación</div>
+      <div class="zone-cards"></div>
+    </div>
+  </div>
+
+  <div id="pool-label">Subtareas por clasificar</div>
+  <div id="pool"></div>
+
+  <div id="controls">
+    <button id="verify-btn" disabled>Finalizar clasificación</button>
+  </div>
+  <div id="feedback"></div>
+
+  <div id="result-screen">
+    <div id="result-shape"></div>
+    <div id="result-title">DESCOMPOSICIÓN COMPLETA</div>
+    <div id="result-sub" id="result-sub-text"></div>
+    <div id="score-box">
+      <span id="score-value">0</span><span id="score-max"> / 40</span>
+      <div id="score-label">Puntos obtenidos</div>
+    </div>
+    <button id="continue-btn">Continuar</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- DATA ----------
+  const subtasks = [
+    { id: 1, text: "Revisar la fuente de poder", cat: "diagnostico" },
+    { id: 2, text: "Verificar el cable de corriente", cat: "diagnostico" },
+    { id: 3, text: "Reemplazar la pieza dañada", cat: "reparacion" },
+    { id: 4, text: "Reconectar los componentes internos", cat: "reparacion" },
+    { id: 5, text: "Encender la PC de prueba", cat: "verificacion" },
+    { id: 6, text: "Confirmar que el sistema operativo carga", cat: "verificacion" }
+  ];
+  const TOTAL_TIME = 150; // 2:30
+  const MAX_SCORE = 40;
+
+  let timeLeft = TOTAL_TIME;
+  let timerInterval = null;
+  let finished = false;
+
+  // placement[cardId] = category string or null
+  const placement = {};
+  subtasks.forEach(s => placement[s.id] = null);
+
+  // ---------- SHUFFLE ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // ---------- DOM REFS ----------
+  const pool = document.getElementById('pool');
+  const verifyBtn = document.getElementById('verify-btn');
+  const feedback = document.getElementById('feedback');
+  const timerEl = document.getElementById('timer');
+  const zones = Array.from(document.querySelectorAll('.zone'));
+
+  function createCardEl(task){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.draggable = true;
+    card.dataset.id = task.id;
+
+    const dot = document.createElement('div');
+    dot.className = 'card-dot';
+
+    const text = document.createElement('div');
+    text.textContent = task.text;
+
+    card.appendChild(dot);
+    card.appendChild(text);
+    attachCardEvents(card);
+    return card;
+  }
+
+  function buildPool(){
+    pool.innerHTML = '';
+    const shuffled = shuffle(subtasks);
+    shuffled.forEach(task => {
+      pool.appendChild(createCardEl(task));
+    });
+  }
+
+  // ---------- DRAG AND DROP ----------
+  let draggedCard = null;
+
+  function attachCardEvents(card){
+    card.addEventListener('dragstart', (e) => {
+      if(finished){ e.preventDefault(); return; }
+      draggedCard = card;
+      setTimeout(()=>card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      draggedCard = null;
+    });
+  }
+
+  zones.forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      if(finished) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-over');
+    });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if(finished || !draggedCard) return;
+      placeCardInZone(draggedCard, zone);
+    });
+  });
+
+  pool.addEventListener('dragover', (e) => {
+    if(finished) return;
+    e.preventDefault();
+  });
+  pool.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if(finished || !draggedCard) return;
+    returnCardToPool(draggedCard);
+  });
+
+  function getTaskById(id){
+    return subtasks.find(s => s.id === id);
+  }
+
+  function placeCardInZone(card, zone){
+    const cardId = parseInt(card.dataset.id, 10);
+    const targetCat = zone.dataset.cat;
+    const task = getTaskById(cardId);
+
+    card.classList.remove('correct','incorrect');
+
+    const zoneCards = zone.querySelector('.zone-cards');
+    zoneCards.appendChild(card);
+    placement[cardId] = targetCat;
+
+    // feedback inmediato
+    const isCorrect = task.cat === targetCat;
+    if(isCorrect){
+      card.classList.add('correct');
+      feedback.textContent = '"' + task.text + '" clasificada correctamente en ' + zoneLabel(targetCat) + '.';
+    } else {
+      card.classList.add('incorrect');
+      feedback.textContent = '"' + task.text + '" no pertenece a ' + zoneLabel(targetCat) + '. Puedes moverla a otra fase.';
+    }
+
+    checkAllPlaced();
+  }
+
+  function returnCardToPool(card){
+    const cardId = parseInt(card.dataset.id, 10);
+    card.classList.remove('correct','incorrect');
+    pool.appendChild(card);
+    placement[cardId] = null;
+    feedback.textContent = '';
+    checkAllPlaced();
+  }
+
+  function zoneLabel(cat){
+    if(cat === 'diagnostico') return 'Diagnóstico';
+    if(cat === 'reparacion') return 'Reparación';
+    if(cat === 'verificacion') return 'Verificación';
+    return cat;
+  }
+
+  function checkAllPlaced(){
+    const allPlaced = subtasks.every(s => placement[s.id] !== null);
+    verifyBtn.disabled = !allPlaced || finished;
+  }
+
+  // ---------- TIMER ----------
+  function formatTime(t){
+    const m = Math.floor(t/60).toString().padStart(2,'0');
+    const s = (t%60).toString().padStart(2,'0');
+    return m + ':' + s;
+  }
+
+  function startTimer(){
+    timerEl.textContent = formatTime(timeLeft);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatTime(timeLeft);
+      if(timeLeft <= 20){
+        timerEl.classList.add('warning');
+      }
+      if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        timeLeft = 0;
+        onTimeUp();
+      }
+    }, 1000);
+  }
+
+  function onTimeUp(){
+    if(finished) return;
+    finished = true;
+    verifyBtn.disabled = true;
+    const correctCount = countCorrect();
+    showResult(correctCount, true);
+  }
+
+  // ---------- SCORING ----------
+  function countCorrect(){
+    let correct = 0;
+    subtasks.forEach(s => {
+      if(placement[s.id] === s.cat) correct++;
+    });
+    return correct;
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    if(finished) return;
+    const correctCount = countCorrect();
+    finished = true;
+    clearInterval(timerInterval);
+    verifyBtn.disabled = true;
+
+    // marcar todas las tarjetas con su estado final
+    subtasks.forEach(s => {
+      const cardEl = document.querySelector('.card[data-id="'+s.id+'"]');
+      if(cardEl){
+        cardEl.classList.remove('correct','incorrect');
+        cardEl.classList.add(placement[s.id] === s.cat ? 'correct' : 'incorrect');
+      }
+    });
+
+    setTimeout(()=>showResult(correctCount, false), 600);
+  });
+
+  // ---------- RESULT ----------
+  const resultScreen = document.getElementById('result-screen');
+  const resultTitleEl = document.getElementById('result-title');
+  const resultSub = document.getElementById('result-sub-text');
+  const scoreValue = document.getElementById('score-value');
+  const continueBtn = document.getElementById('continue-btn');
+
+  function showResult(correctCount, timeExpired){
+    clearInterval(timerInterval);
+    finished = true;
+
+    const score = Math.round((correctCount/6) * MAX_SCORE);
+
+    if(correctCount === 6){
+      resultTitleEl.textContent = 'DESCOMPOSICIÓN COMPLETA';
+      resultSub.textContent = 'Lograste dividir el problema en subtareas claras dentro de las 3 fases correctas.';
+    } else if(timeExpired){
+      resultTitleEl.textContent = 'TIEMPO AGOTADO';
+      resultSub.textContent = 'Se acabó el tiempo. Clasificaste correctamente ' + correctCount + ' de 6 subtareas.';
+    } else {
+      resultTitleEl.textContent = 'DESCOMPOSICIÓN PARCIAL';
+      resultSub.textContent = 'Clasificaste correctamente ' + correctCount + ' de 6 subtareas.';
+    }
+
+    scoreValue.textContent = score;
+    resultScreen.classList.add('show');
+
+    // Enviar resultado a Unity
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(score));
+      } catch (e) {}
+    }
+  }
+
+  continueBtn.addEventListener('click', () => {
+    if (window.unityInstance) {
+      try {
+        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+      } catch (e) {}
+    }
+  });
+
+  // ---------- INIT ----------
+  function init(){
+    buildPool();
+    startTimer();
+  }
+
+  init();
+
+})();
+</script>
+
+</body>
+</html>

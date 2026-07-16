@@ -49,7 +49,7 @@ public class NPCEvaluador : MonoBehaviour
             senaletica.SetActive(false);
 
         GameManager.instancia.AgregarPuntos(10);
-        QuizManager.instancia.IniciarQuiz(capituloQuiz);
+        QuizManager.instancia.IniciarQuiz(capituloQuiz, this);
     }
 
     public void CerrarEvaluacion()

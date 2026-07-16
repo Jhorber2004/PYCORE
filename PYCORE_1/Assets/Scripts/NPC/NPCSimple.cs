@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class NPCSimple : MonoBehaviour
+public class NPCSimple : MonoBehaviour, IDialogable
 {
     [Header("Configuracion")]
     public float distanciaInteraccion = 3f;

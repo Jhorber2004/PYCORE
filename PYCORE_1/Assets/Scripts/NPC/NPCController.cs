@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class NPCController : MonoBehaviour
+public class NPCController : MonoBehaviour, IDialogable
 {
     [Header("Configuración")]
     public float distanciaInteraccion = 3f;
@@ -22,6 +22,14 @@ public class NPCController : MonoBehaviour
 
     [Header("Señalética")]
     public GameObject senaletica;
+
+    [Header("Mision")]
+    [Tooltip("Objetivo que se mostrara al jugador despues de hablar con este NPC. Dejar vacio si este NPC no avanza la mision.")]
+    public string siguienteObjetivo = "";
+
+    [Tooltip("Mensaje que se muestra si el jugador intenta hablar con este NPC antes de tiempo (fuera de orden).")]
+    [TextArea(2, 3)]
+    public string mensajeBloqueado = "Todavia no puedo hablar contigo. Habla primero con las otras personas.";
 
     private Transform jugador;
     private bool dialogoAbierto = false;
@@ -45,7 +53,12 @@ public class NPCController : MonoBehaviour
                 senaletica.SetActive(true);
 
             if (Input.GetKeyDown(KeyCode.E))
-                AbrirDialogo();
+            {
+                if (GameManager.instancia.PuedeHablarCon(npcId))
+                    AbrirDialogo();
+                else
+                    MostrarBloqueado();
+            }
         }
         else
         {
@@ -54,11 +67,21 @@ public class NPCController : MonoBehaviour
         }
     }
 
+    void MostrarBloqueado()
+    {
+        dialogoAbierto = true;
+        if (senaletica != null)
+            senaletica.SetActive(false);
+
+        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, mensajeBloqueado, this, imagenPersonaje, null);
+    }
+
     void AbrirDialogo()
     {
         dialogoAbierto = true;
         GameManager.instancia.RegistrarVisitaNPC(npcId);
-        MisionManager.instancia.CompletarObjetivo("Habla con Carlos el companero");
+        if (!string.IsNullOrEmpty(siguienteObjetivo))
+            MisionManager.instancia.CompletarObjetivo(siguienteObjetivo);
         if (senaletica != null)
             senaletica.SetActive(false);
 

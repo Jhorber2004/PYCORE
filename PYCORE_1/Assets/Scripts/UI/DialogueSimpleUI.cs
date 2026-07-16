@@ -2,6 +2,13 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
+// Cualquier NPC que pueda mostrar un mensaje en DialogueSimpleUI (bloqueado, pista, etc.)
+// debe implementar esto para que el panel sepa a quien avisarle cuando se cierra.
+public interface IDialogable
+{
+    void CerrarDialogo();
+}
+
 public class DialogueSimpleUI : MonoBehaviour
 {
     public static DialogueSimpleUI instancia;
@@ -14,7 +21,7 @@ public class DialogueSimpleUI : MonoBehaviour
     public Image imagenNPC;
     public Image fondoImagen;
 
-    private NPCSimple npcActual;
+    private IDialogable npcActual;
 
     void Awake()
     {
@@ -22,7 +29,7 @@ public class DialogueSimpleUI : MonoBehaviour
         panelSimple.SetActive(false);
     }
 
-    public void MostrarDialogo(string nombre, string texto, NPCSimple npc, Sprite imagenPersonaje = null, Sprite fondoDialogo = null)
+    public void MostrarDialogo(string nombre, string texto, IDialogable npc, Sprite imagenPersonaje = null, Sprite fondoDialogo = null)
     {
         npcActual = npc;
         textoNombre.text = nombre;

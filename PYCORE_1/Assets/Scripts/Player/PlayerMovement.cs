@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private Vector2 movimiento;
     private Animator animator;
+    private string estadoAnimActual = "";
 
     void Start()
     {
@@ -15,12 +16,17 @@ public class PlayerMovement : MonoBehaviour
 
 void Update()
 {
-    // Si el dialogo está abierto no se mueve y libera el teclado
-    if (DialogueUI.instancia != null && DialogueUI.instancia.panelDialogo.activeSelf)
+    // Si algun panel de dialogo, dialogo simple o quiz esta abierto, no se mueve y libera el teclado
+    bool interaccionAbierta =
+        (DialogueUI.instancia != null && DialogueUI.instancia.panelDialogo.activeSelf) ||
+        (DialogueSimpleUI.instancia != null && DialogueSimpleUI.instancia.panelSimple.activeSelf) ||
+        (QuizManager.instancia != null && QuizManager.instancia.panelQuiz.activeSelf);
+
+    if (interaccionAbierta)
     {
         movimiento = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
-        animator.Play("Alex_Idle");
+        CambiarAnimacion("Alex_Idle");
         return;
     }
 
@@ -28,16 +34,24 @@ void Update()
     movimiento.y = Input.GetAxisRaw("Vertical");
 
     if (movimiento.x > 0)
-        animator.Play("Alex_Walk_Right");
+        CambiarAnimacion("Alex_Walk_Right");
     else if (movimiento.x < 0)
-        animator.Play("Alex_Walk_Left");
+        CambiarAnimacion("Alex_Walk_Left");
     else if (movimiento.y > 0)
-        animator.Play("Alex_Walk_Up");
+        CambiarAnimacion("Alex_Walk_Up");
     else if (movimiento.y < 0)
-        animator.Play("Walk_Down");
+        CambiarAnimacion("Walk_Down");
     else
-        animator.Play("Alex_Idle");
+        CambiarAnimacion("Alex_Idle");
 }
+
+    void CambiarAnimacion(string estado)
+    {
+        // Solo reinicia el Animator si el estado realmente cambio, evita el parpadeo de la animacion
+        if (estadoAnimActual == estado) return;
+        estadoAnimActual = estado;
+        animator.Play(estado);
+    }
 
     void FixedUpdate()
     {
