@@ -23,6 +23,24 @@ public class GameManager : MonoBehaviour
     // NPCs visitados
     private List<string> npcsVisitados = new List<string>();
 
+    // Cadena completa de la historia, confirmada con los mensajes "mensajeBloqueado"
+    // de cada NPC en la escena. Indice 0 es un sentinela vacio (no se usa).
+    private static readonly string[] ordenNPCs = {
+        "",
+        "prof_byte",     // 1 - Cap 1
+        "npc_carlos",    // 2
+        "npc_rosa",      // 3
+        "npc_miguel",    // 4
+        "ing. Ada",      // 5 - Cap 2
+        "npc_maria",     // 6
+        "npc_jorge",     // 7
+        "npc_miguel2",   // 8
+        "dr. Turing",    // 9 - Cap 3
+        "npc_luis",      // 10
+        "npc_secretaria",// 11
+        "npc_miguel3"    // 12
+    };
+
     void Awake()
     {
         if (instancia == null)
@@ -30,11 +48,11 @@ public class GameManager : MonoBehaviour
             instancia = this;
             DontDestroyOnLoad(gameObject);
 
-            // El nombre ingresado en MenuManager.Jugar() se guarda aqui.
-            // Se aplica ANTES de CargarProgreso() para que un progreso guardado
-            // previamente no lo sobreescriba con un nombre viejo.
-            if (PlayerPrefs.HasKey("NombreEstudiante"))
+            bool nombreNuevoIngresado = PlayerPrefs.HasKey("NombreEstudiante");
+            if (nombreNuevoIngresado)
                 nombreEstudiante = PlayerPrefs.GetString("NombreEstudiante");
+
+            CargarProgreso(nombreNuevoIngresado);
         }
         else
         {
@@ -42,7 +60,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Agregar puntos al capítulo actual
     public void AgregarPuntos(int puntos)
     {
         puntajeTotal += puntos;
@@ -54,9 +71,14 @@ public class GameManager : MonoBehaviour
         Debug.Log("Puntaje total: " + puntajeTotal);
     }
 
-    // Registrar visita a un NPC y dar puntos
+    // BUG CORREGIDO: se agrego Trim() para neutralizar los npcId con espacios
+    // sobrantes en el Inspector (ej: 'ing. Ada ', 'dr. Turing ') sin depender
+    // de que se corrijan manualmente en la escena.
     public void RegistrarVisitaNPC(string npcId)
     {
+        if (string.IsNullOrEmpty(npcId)) return;
+        npcId = npcId.Trim();
+
         if (!npcsVisitados.Contains(npcId))
         {
             npcsVisitados.Add(npcId);
@@ -65,14 +87,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Completar misión del capítulo
     public void CompletarMision(int puntos)
     {
         AgregarPuntos(puntos);
         Debug.Log("Misión completada! +" + puntos + " puntos");
     }
 
-    // Completar capítulo
     public void CompletarCapitulo(int capitulo)
     {
         if (capitulo == 1) capitulo1Completado = true;
@@ -81,13 +101,16 @@ public class GameManager : MonoBehaviour
 
         capitulActual = capitulo + 1;
         GuardarProgreso();
+        
+        if (ReporteManager.instancia != null)
+            ReporteManager.instancia.EnviarReporte();   
     }
 
-    // Guardar progreso en JSON
     public void GuardarProgreso()
     {
         DatosProgreso datos = new DatosProgreso();
         datos.nombreEstudiante = nombreEstudiante;
+        datos.capitulActual = capitulActual;
         datos.puntajeTotal = puntajeTotal;
         datos.puntajeCapitulo1 = puntajeCapitulo1;
         datos.puntajeCapitulo2 = puntajeCapitulo2;
@@ -103,14 +126,17 @@ public class GameManager : MonoBehaviour
         Debug.Log("Progreso guardado: " + json);
     }
 
-    // Cargar progreso
-    public void CargarProgreso()
+    public void CargarProgreso(bool mantenerNombreActual = false)
     {
         if (PlayerPrefs.HasKey("ProgresoJuego"))
         {
             string json = PlayerPrefs.GetString("ProgresoJuego");
             DatosProgreso datos = JsonUtility.FromJson<DatosProgreso>(json);
-            nombreEstudiante = datos.nombreEstudiante;
+
+            if (!mantenerNombreActual)
+                nombreEstudiante = datos.nombreEstudiante;
+
+            capitulActual = datos.capitulActual > 0 ? datos.capitulActual : 1;
             puntajeTotal = datos.puntajeTotal;
             puntajeCapitulo1 = datos.puntajeCapitulo1;
             puntajeCapitulo2 = datos.puntajeCapitulo2;
@@ -118,7 +144,7 @@ public class GameManager : MonoBehaviour
             capitulo1Completado = datos.capitulo1Completado;
             capitulo2Completado = datos.capitulo2Completado;
             capitulo3Completado = datos.capitulo3Completado;
-            npcsVisitados = datos.npcsVisitados;
+            npcsVisitados = datos.npcsVisitados ?? new List<string>();
         }
     }
 
@@ -130,27 +156,42 @@ public class GameManager : MonoBehaviour
                "\nCapítulo 2: " + puntajeCapitulo2 + "/100" +
                "\nCapítulo 3: " + puntajeCapitulo3 + "/100";
     }
-    public int ObtenerOrdenNPC(string npcId)
-{
-    switch (npcId)
-    {
-        case "prof_byte": return 1;
-        case "npc_carlos": return 2;
-        case "npc_rosa": return 3;
-        case "npc_miguel": return 4;
-        default: return 0;
-    }
-}
 
+    public int ObtenerOrdenNPC(string npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return 0;
+        npcId = npcId.Trim();
+
+        for (int i = 1; i < ordenNPCs.Length; i++)
+            if (ordenNPCs[i] == npcId) return i;
+
+        return 0;
+    }
+
+    // BUG CORREGIDO: antes solo cubria 4 NPCs del Capitulo 1. Ahora cubre
+    // toda la cadena narrativa de los 3 capitulos, confirmada con los
+    // mensajes "mensajeBloqueado" de cada NPC en la escena.
     public bool PuedeHablarCon(string npcId)
     {
         int orden = ObtenerOrdenNPC(npcId);
         if (orden <= 1) return true;
 
-        string[] ordenNPCs = { "", "prof_byte", "npc_carlos", "npc_rosa", "npc_miguel" };
         string npcAnterior = ordenNPCs[orden - 1];
-
         return npcsVisitados.Contains(npcAnterior);
+    }
+
+    // NUEVO: gate especifico para los evaluadores, que antes no validaban
+    // ningun orden. Requiere haber hablado con el "Tecnico Miguel" de ese
+    // capitulo (el ultimo paso antes del examen en cada capitulo).
+    public bool PuedeRendirEvaluacion(int capitulo)
+    {
+        switch (capitulo)
+        {
+            case 1: return npcsVisitados.Contains("npc_miguel");
+            case 2: return npcsVisitados.Contains("npc_miguel2");
+            case 3: return npcsVisitados.Contains("npc_miguel3");
+            default: return true;
+        }
     }
 }
 
@@ -158,6 +199,7 @@ public class GameManager : MonoBehaviour
 public class DatosProgreso
 {
     public string nombreEstudiante;
+    public int capitulActual;
     public int puntajeTotal;
     public int puntajeCapitulo1;
     public int puntajeCapitulo2;

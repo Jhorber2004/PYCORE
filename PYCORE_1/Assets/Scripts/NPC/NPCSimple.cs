@@ -33,7 +33,10 @@ public class NPCSimple : MonoBehaviour, IDialogable
 
     private Transform jugador;
     private bool dialogoAbierto = false;
-    private int dialogoActual = 0;
+
+    // BUG CORREGIDO: antes no existia forma de distinguir un dialogo real
+    // de un mensaje de bloqueo, y ambos activaban el minijuego.
+    private bool mostrandoBloqueo = false;
 
     void Start()
     {
@@ -71,6 +74,7 @@ public class NPCSimple : MonoBehaviour, IDialogable
     void MostrarBloqueado()
     {
         dialogoAbierto = true;
+        mostrandoBloqueo = true;
         if (senaletica != null)
             senaletica.SetActive(false);
 
@@ -78,39 +82,43 @@ public class NPCSimple : MonoBehaviour, IDialogable
     }
 
     void AbrirDialogo()
-{
-    dialogoAbierto = true;
-    if (senaletica != null)
-        senaletica.SetActive(false);
-
-    GameManager.instancia.RegistrarVisitaNPC(npcId);
-
-    if (!string.IsNullOrEmpty(siguienteObjetivo))
-        MisionManager.instancia.CompletarObjetivo(siguienteObjetivo);
-
-    string[] dialogos = { dialogo1, dialogo2, dialogo3 };
-    string texto = dialogos[dialogoActual % dialogos.Length];
-
-    bool esUltimoDialogo = (dialogoActual >= dialogos.Length - 1);
-    dialogoActual++;
-
-    DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, texto, this, imagenPersonaje, fondoDialogo);
-
-    if (activaMinijuego && esUltimoDialogo)
     {
-        Invoke("LanzarMinijuego", 0.5f);
+        dialogoAbierto = true;
+        mostrandoBloqueo = false;
+        if (senaletica != null)
+            senaletica.SetActive(false);
+
+        GameManager.instancia.RegistrarVisitaNPC(npcId);
+
+        if (!string.IsNullOrEmpty(siguienteObjetivo))
+            MisionManager.instancia.CompletarObjetivo(siguienteObjetivo);
+
+        string[] dialogos = { dialogo1, dialogo2, dialogo3 };
+        DialogueSimpleUI.instancia.MostrarDialogo(nombreNPC, dialogos, this, imagenPersonaje, fondoDialogo);
     }
-}
 
-void LanzarMinijuego()
-{
-    if (!string.IsNullOrEmpty(archivoMinijuego))
-        MinijuegoManager.instancia.AbrirMinijuego(archivoMinijuego);
-}
+    void LanzarMinijuego()
+    {
+        if (string.IsNullOrEmpty(archivoMinijuego)) return;
+        MinijuegoManager.instancia.AbrirMinijuego(archivoMinijuego, this);
+    }
 
+    // Se llama automaticamente cuando MinijuegoManager recibe el puntaje del HTML.
+    public void RecibirResultadoMinijuego(int puntaje)
+    {
+        Debug.Log(nombreNPC + " - minijuego terminado con " + puntaje + " puntos");
+    }
+
+    // Se llama automaticamente cuando DialogueSimpleUI cierra el panel
     public void CerrarDialogo()
     {
+        // BUG CORREGIDO: ahora si diferenciamos dialogo real vs mensaje de bloqueo.
+        bool eraDialogoCompleto = dialogoAbierto && !mostrandoBloqueo;
         dialogoAbierto = false;
+        mostrandoBloqueo = false;
+
+        if (eraDialogoCompleto && activaMinijuego)
+            Invoke(nameof(LanzarMinijuego), 0.3f);
     }
 
     void OnDrawGizmosSelected()
