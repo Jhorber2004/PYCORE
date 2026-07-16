@@ -441,17 +441,17 @@
     }
     overlay.classList.add('show');
 
-    if (window.unityInstance) {
+    if (window.parent.unityInstance) {
       try {
-        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(puntaje));
+        window.parent.unityInstance.SendMessage('MinijuegoManager', 'RecibirResultadoMinijuego', String(puntaje));
       } catch (e) {}
     }
   }
 
   document.getElementById('overlayBtn').addEventListener('click', function() {
-    if (window.unityInstance) {
+    if (window.parent.unityInstance) {
       try {
-        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+        window.parent.unityInstance.SendMessage('MinijuegoManager', 'CerrarMinijuego', '');
       } catch (e) {}
     }
     overlay.classList.remove('show');

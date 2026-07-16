@@ -722,17 +722,17 @@
     resultScreen.classList.add('show');
 
     // Enviar resultado a Unity
-    if (window.unityInstance) {
+    if (window.parent.unityInstance) {
       try {
-        window.unityInstance.SendMessage('QuizManager', 'RecibirResultadoMinijuego', String(score));
+        window.parent.unityInstance.SendMessage('MinijuegoManager', 'RecibirResultadoMinijuego', String(score));
       } catch (e) {}
     }
   }
 
   continueBtn.addEventListener('click', () => {
-    if (window.unityInstance) {
+    if (window.parent.unityInstance) {
       try {
-        window.unityInstance.SendMessage('QuizManager', 'CerrarMinijuegoHTML', '');
+        window.parent.unityInstance.SendMessage('MinijuegoManager', 'CerrarMinijuego', '');
       } catch (e) {}
     }
   });
